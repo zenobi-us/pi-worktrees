@@ -18,8 +18,7 @@
     "url": "git@github.com:zenobi-us/pi-worktrees.git"
   },
   "publishConfig": {
-    "access": "public",
-    "provenance": true
+    "access": "public"
   },
   "keywords": [
     "pi-package"
