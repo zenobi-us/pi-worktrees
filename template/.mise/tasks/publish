@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+#MISE description="Publish to npm registry"
+#MISE depends=["setup", "build"]
+#USAGE flag "-t --tag <tag>" "Tag to publish with" default="latest"
+#USAGE flag "-d --dry-run" "Perform a dry run of the publish process"
+#USAGE flag "--otp <otp>" "One-time password for npm two-factor authentication" default=""
+
+set -e
+
+echo "Publishing to npm"
+echo " > with tag: ${usage_tag}..."
+echo " > npm version: $(npm --version)"
+
+# For 'next' tag, bump version to a prerelease to avoid conflicts
+if [ "${usage_tag}" = "next" ]; then
+	# Count commits since last tag for a semantic build number
+	LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+	if [ -n "$LAST_TAG" ]; then
+		BUILD_NUMBER=$(git rev-list "${LAST_TAG}..HEAD" --count)
+		echo " > last tag: ${LAST_TAG}"
+		echo " > commits since last tag: ${BUILD_NUMBER}"
+	else
+		BUILD_NUMBER=$(git rev-list HEAD --count)
+		echo " > no previous tag found"
+		echo " > total commits: ${BUILD_NUMBER}"
+	fi
+	CURRENT_VERSION=$(jq -r '.version' package.json)
+	PRERELEASE_VERSION="$(semver get release "$CURRENT_VERSION")-next.${BUILD_NUMBER}"
+	echo " > bumping version: ${CURRENT_VERSION} -> ${PRERELEASE_VERSION}"
+
+	if [ "${usage_dry_run}" != "true" ]; then
+		npm version "${PRERELEASE_VERSION}" --no-git-tag-version --allow-same-version
+	fi
+fi
+
+args=()
+
+if [ -n "${usage_otp}" ]; then
+	args+=("--otp" "${usage_otp}")
+	echo " > using provided OTP for 2FA"
+fi
+
+# if not usage_dry_run and is in github action, add provenance flag to args.
+if [ -n "${GITHUB_ACTIONS}" ]; then
+	args+=("--provenance")
+	echo " > adding provenance flag for CI publish"
+fi
+
+# Publish directly from source (allows provenance generation in CI)
+if [ "${usage_dry_run}" != "true" ]; then
+	npm publish \
+		--access public \
+		--tag "${usage_tag}" \
+		"${args[@]}"
+
+	echo "Publish process completed."
+else
+	echo "Dry run mode - skipping actual publish"
+	echo "Would have run:"
+	echo "npm publish --access public --tag ${usage_tag} ${args[*]}"
+fi
