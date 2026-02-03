@@ -1,6 +1,6 @@
 {
-  "name": "pi-worktrees",
-  "version": "0.1.0",
+  "name": "@zenobius/pi-worktrees",
+  "version": "0.0.1",
   "description": "Worktrees extension for Pi Coding Agent",
   "author": {
     "name": "Zenobius",
@@ -21,6 +21,9 @@
     "access": "public",
     "provenance": true
   },
+  "keywords": [
+    "pi-package"
+  ],
   "files": [
     "dist",
     "src/version.ts"
