@@ -32,14 +32,6 @@ Run in Pi:
 - `mise run lint:fix` - Fix linting issues
 - `mise run format` - Format code with Prettier
 
-## Author
-
-Zenobius <airtonix@users.noreploy.github.com>
-
-## Repository
-
-git@github.com:zenobi-us/pi-worktrees.git
-
 ## License
 
 MIT License. See the [LICENSE](LICENSE) file for details.
