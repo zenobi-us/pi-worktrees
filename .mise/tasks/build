@@ -3,4 +3,7 @@
 #MISE sources=["src/**/*"]
 #MISE outputs=["dist/index.js"]
 
-bun build ./src/index.ts --outdir dist --target bun
+bun build ./src/index.ts --outdir dist --target bun \
+	--external '@mariozechner/pi-coding-agent' \
+	--external '@mariozechner/pi-tui' \
+	--external '@mariozechner/pi-ai'

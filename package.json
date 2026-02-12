@@ -4,7 +4,7 @@
   "description": "Worktrees extension for Pi Coding Agent",
   "author": {
     "name": "Zenobius",
-    "email": "airtonix@users.noreploy.github.com"
+    "email": "airtonix@users.noreply.github.com"
   },
   "type": "module",
   "exports": {
@@ -21,13 +21,21 @@
     "access": "public"
   },
   "keywords": [
-    "pi-package"
+    "pi-package",
+    "git-worktrees"
   ],
   "files": [
     "dist",
-    "src/version.ts"
+    "README.md"
   ],
+  "dependencies": {
+    "@mariozechner/pi-coding-agent": "~0.52.9",
+    "@mariozechner/pi-tui": "~0.52.9",
+    "nconf": "^0.13.0",
+    "typebox": "^1.0.81"
+  },
   "devDependencies": {
+    "@types/nconf": "^0.10.7",
     "@eslint/js": "^9.39.1",
     "@types/node": "^20.11.5",
     "@typescript-eslint/eslint-plugin": "8.47.0",
