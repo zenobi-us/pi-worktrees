@@ -35,3 +35,4 @@ jobs:
           mise run lint
           mise run test
           mise run build
+          mise run attw

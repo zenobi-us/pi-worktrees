@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+#MISE description="Validate published package types with arethetypeswrong"
+#MISE depends=["build"]
+
+set -euo pipefail
+
+if ! analysis_json=$(attw --profile esm-only --pack . --format json); then
+	echo "❌ arethetypeswrong: found type resolution problem(s)"
+	exit 1
+fi
+
+echo "$analysis_json" | jq .
+
+types_kind=$(echo "$analysis_json" | jq -r '.analysis.types.kind // empty')
+
+if [ -z "$types_kind" ]; then
+	echo "❌ arethetypeswrong: published package is missing type definitions"
+	exit 1
+fi
+
+echo "✓ arethetypeswrong check passed"

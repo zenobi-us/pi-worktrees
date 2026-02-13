@@ -28,6 +28,11 @@
     "dist",
     "README.md"
   ],
+  "pi": {
+    "extensions": [
+      "./dist/index.js"
+    ]
+  },
   "dependencies": {
     "@mariozechner/pi-coding-agent": "~0.52.9",
     "@mariozechner/pi-tui": "~0.52.9",
@@ -36,6 +41,7 @@
   },
   "devDependencies": {
     "@types/nconf": "^0.10.7",
+    "@arethetypeswrong/cli": "^0.18.2",
     "@eslint/js": "^9.39.1",
     "@types/node": "^20.11.5",
     "@typescript-eslint/eslint-plugin": "8.47.0",
