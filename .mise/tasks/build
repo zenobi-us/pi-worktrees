@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 #MISE description="Build the project"
+#MISE depends=["setup"]
 #MISE sources=["src/**/*"]
 #MISE outputs=["dist/index.js"]
 
