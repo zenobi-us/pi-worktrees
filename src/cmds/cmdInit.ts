@@ -1,5 +1,5 @@
 import type { ExtensionCommandContext } from '@mariozechner/pi-coding-agent';
-import { SETTINGS_FILE_PATH, saveWorktreeSettings, type WorktreeSettingsConfig } from '../services/config.ts';
+import { saveWorktreeSettings, type WorktreeSettingsConfig } from '../services/config.ts';
 import type { CommandDeps } from '../types.ts';
 
 export async function cmdInit(
@@ -96,7 +96,6 @@ export async function cmdInit(
     newSettings.parentDir ? `  parentDir: "${newSettings.parentDir}"` : '  parentDir: (default)',
     newSettings.onCreate ? `  onCreate: "${newSettings.onCreate}"` : '  onCreate: (none)',
     '',
-    `File: ${SETTINGS_FILE_PATH}`,
   ].join('\n');
 
   const confirmed = await ctx.ui.confirm('Save settings?', preview);
@@ -108,7 +107,7 @@ export async function cmdInit(
 
   try {
     await saveWorktreeSettings(deps.configService, newSettings);
-    ctx.ui.notify(`✓ Settings saved to ${SETTINGS_FILE_PATH}`, 'info');
+    ctx.ui.notify(`✓ Settings saved`, 'info');
 
     const finalConfig = JSON.stringify({ worktree: newSettings }, null, 2);
     ctx.ui.notify(`Configuration:\n${finalConfig}`, 'info');

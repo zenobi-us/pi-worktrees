@@ -1,12 +1,7 @@
 import type { ExtensionCommandContext } from '@mariozechner/pi-coding-agent';
 import { isGitRepo, listWorktrees } from '../services/git.ts';
-import type { CommandDeps } from '../types.ts';
 
-export async function cmdList(
-  _args: string,
-  ctx: ExtensionCommandContext,
-  _deps: CommandDeps
-): Promise<void> {
+export async function cmdList(_args: string, ctx: ExtensionCommandContext): Promise<void> {
   if (!isGitRepo(ctx.cwd)) {
     ctx.ui.notify('Not in a git repository', 'error');
     return;

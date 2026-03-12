@@ -1,12 +1,8 @@
 import { createConfigService, type ConfigService } from '@zenobius/pi-extension-config';
 import { Object as TypeObject, Optional, Static, String as TypeString } from 'typebox';
 import { Parse } from 'typebox/value';
-import { homedir } from 'os';
-import path from 'path';
 
 const APP_NAME = 'pi-worktrees';
-
-export const SETTINGS_FILE_PATH = path.join(homedir(), '.pi', 'agent', `${APP_NAME}.config.json`);
 
 const WorktreeSettingsSchema = TypeObject(
   {
