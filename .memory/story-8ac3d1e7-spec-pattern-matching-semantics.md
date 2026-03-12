@@ -2,7 +2,7 @@
 id: 8ac3d1e7
 title: spec-pattern-matching-semantics
 created_at: 2026-03-12T00:00:00+10:30
-updated_at: 2026-03-12T22:50:00+10:30
+updated_at: 2026-03-12T23:03:00+10:30
 status: completed
 epic_id: a7c9d4f2
 priority: high
@@ -16,9 +16,9 @@ test_coverage: full
 As a maintainer, I want deterministic pattern-matching semantics so that each repository resolves to the expected worktree settings without ambiguity.
 
 ## Acceptance Criteria
-- [x] Wildcard behavior (`*`) is defined.
+- [x] Glob pattern behavior is defined (not just `*`; includes supported glob tokens and matching rules).
 - [x] Match target normalization is defined (canonical repo identifier).
-- [x] Precedence is defined: exact > most specific wildcard > declaration order.
+- [x] Precedence is defined: exact > most specific glob > declaration order.
 - [x] No-match fallback behavior is defined.
 - [x] `onCreate` string/array normalization and execution rules are defined.
 
@@ -36,7 +36,7 @@ Without a clear spec, matcher behavior risks becoming implementation-defined and
 ### E2E Tests
 | AC# | Criterion | Test file/case | Status |
 |---|---|---|---|
-| AC1 | Wildcard behavior defined | Spec review checklist | passing |
+| AC1 | Glob behavior defined | Spec review checklist | passing |
 | AC2 | Match target normalization defined | Spec review checklist | passing |
 | AC3 | Precedence ordering defined | Spec review checklist | passing |
 | AC4 | Fallback behavior defined | Spec review checklist | passing |
@@ -47,8 +47,8 @@ Without a clear spec, matcher behavior risks becoming implementation-defined and
 
 ## Notes
 Specification captured:
-- `*` matches any sequence.
+- Patterns use glob semantics (not star-only), with documented supported tokens and match behavior.
 - Matching target is canonical host/owner/repo identifier.
-- Deterministic precedence and tie-break behavior.
+- Deterministic precedence and tie-break behavior (exact > most specific glob > declaration order).
 - Fallback to legacy singular `worktree` when no `worktrees` pattern matches.
 - Runtime normalization of `onCreate` to ordered command list.
