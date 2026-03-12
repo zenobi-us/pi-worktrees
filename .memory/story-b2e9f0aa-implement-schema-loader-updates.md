@@ -2,7 +2,7 @@
 id: b2e9f0aa
 title: implement-schema-loader-updates
 created_at: 2026-03-12T00:00:00+10:30
-updated_at: 2026-03-12T22:56:00+10:30
+updated_at: 2026-03-13T09:05:48+10:30
 status: in-progress
 epic_id: a7c9d4f2
 priority: critical
@@ -29,7 +29,7 @@ Schema and loader behavior are the foundation for downstream matcher and command
 - Repo URL pattern matching algorithm details.
 
 ## Tasks
-- No task files created for this story in memory.
+- [task-b2c3d4e5-add-schema-loader-integration-tests](./task-b2c3d4e5-add-schema-loader-integration-tests.md)
 
 ## Test Specification
 ### E2E Tests
@@ -41,7 +41,7 @@ Schema and loader behavior are the foundation for downstream matcher and command
 | AC4 | Persist output stable | Planned integration config save test | not-implemented |
 
 ### Unit Test Coverage (via Tasks)
-- Verification evidence exists in code-level implementation notes, but no dedicated task artifacts are linked in memory.
+- Task b2c3d4e5: integration coverage for parser, normalization, legacy parsing, and persistence round-trip → supports AC#1-AC#4.
 
 ## Notes
 Implementation tracked primarily in `src/services/config.ts`.

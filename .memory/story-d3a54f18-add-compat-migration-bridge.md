@@ -2,7 +2,7 @@
 id: d3a54f18
 title: add-compat-migration-bridge
 created_at: 2026-03-12T00:00:00+10:30
-updated_at: 2026-03-12T23:10:00+10:30
+updated_at: 2026-03-13T09:05:48+10:30
 status: in-progress
 epic_id: a7c9d4f2
 priority: high
@@ -31,7 +31,7 @@ Backward compatibility is required to avoid disrupting existing workflows.
 - Ad-hoc migration logic outside the shared `pi-extension-config` migration mechanism.
 
 ## Tasks
-- No task files created for this story in memory.
+- [task-9e0f1a2b-author-migration-set-worktree-to-worktrees](./task-9e0f1a2b-author-migration-set-worktree-to-worktrees.md)
 
 ## Test Specification
 ### E2E Tests
@@ -45,7 +45,7 @@ Backward compatibility is required to avoid disrupting existing workflows.
 | AC6 | Deprecation policy matches migration framework | Planned migration-policy verification | not-implemented |
 
 ### Unit Test Coverage (via Tasks)
-- Unit test mappings are not yet represented via task files in memory.
+- Task 9e0f1a2b: migration-set registration, transform behavior, and policy compliance tests → supports AC#4-AC#6.
 
 ## Notes
 Compatibility behavior should converge on shared migration infra, not extension-local bespoke scripts.

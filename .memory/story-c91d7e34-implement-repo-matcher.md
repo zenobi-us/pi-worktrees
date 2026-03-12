@@ -2,7 +2,7 @@
 id: c91d7e34
 title: implement-repo-matcher
 created_at: 2026-03-12T00:00:00+10:30
-updated_at: 2026-03-12T23:10:00+10:30
+updated_at: 2026-03-13T09:05:48+10:30
 status: in-progress
 epic_id: a7c9d4f2
 priority: critical
@@ -32,7 +32,8 @@ Matching is the core capability that enables per-repo configuration.
 - Non-Git dimensions for matching (branch/path).
 
 ## Tasks
-- No task files created for this story in memory.
+- [task-1f2e3d4c-implement-tie-conflict-ui-error](./task-1f2e3d4c-implement-tie-conflict-ui-error.md)
+- [task-5a6b7c8d-add-matching-strategy-enum](./task-5a6b7c8d-add-matching-strategy-enum.md)
 
 ## Test Specification
 ### E2E Tests
@@ -47,7 +48,8 @@ Matching is the core capability that enables per-repo configuration.
 | AC7 | No-match fallback path works | Planned fallback scenario test | not-implemented |
 
 ### Unit Test Coverage (via Tasks)
-- Test linkage has not been formalized into task artifacts in `.memory/`.
+- Task 1f2e3d4c: tie conflict fail-loud behavior → supports AC#5.
+- Task 5a6b7c8d: configurable strategy enum behavior and validation → supports AC#6.
 
 ## Notes
 - Glob behavior (case and separator handling) follows minimatch semantics/options.

@@ -2,7 +2,7 @@
 id: e7b6a902
 title: add-matching-tests
 created_at: 2026-03-12T00:00:00+10:30
-updated_at: 2026-03-12T23:10:00+10:30
+updated_at: 2026-03-13T09:05:48+10:30
 status: in-progress
 epic_id: a7c9d4f2
 priority: high
@@ -29,7 +29,8 @@ This story provides confidence around deterministic behavior under future change
 - Full UI/interactive flow testing.
 
 ## Tasks
-- No task files created for this story in memory.
+- [task-3c4d5e6f-add-command-level-resolution-integration-tests](./task-3c4d5e6f-add-command-level-resolution-integration-tests.md)
+- [task-7a8b9c0d-add-config-service-integration-coverage](./task-7a8b9c0d-add-config-service-integration-coverage.md)
 
 ## Test Specification
 ### E2E Tests
@@ -42,7 +43,8 @@ This story provides confidence around deterministic behavior under future change
 | AC5 | Integration coverage in config + command suites | Planned cross-suite integration checks | not-implemented |
 
 ### Unit Test Coverage (via Tasks)
-- Existing matching/config unit tests are referenced in implementation notes; integration coverage remains open.
+- Task 3c4d5e6f: command-level integration for precedence, fallback, and onCreate sequence/failure-stop → supports AC#1-AC#4.
+- Task 7a8b9c0d: config-service integration coverage aligned with command-level suite → supports AC#5.
 
 ## Notes
 This remains the main open hardening story for the epic.

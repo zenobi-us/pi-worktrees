@@ -1,14 +1,8 @@
 # Todo
 
-- [x] Move story narrative/spec content out of epic and into story files.
-- [x] Fill all current epic story files using user-story format and acceptance criteria.
-- [x] Normalize story status semantics: `test_coverage: partial` stories remain `in-progress`.
-- [x] Remove `.memory/` from repository ignore rules.
-- [x] Update pattern-matching story criteria to require glob semantics (not star-only).
-- [x] Run Q&A clarification pass for ambiguous story criteria and record verbatim responses.
-- [ ] Implement matcher tie handling as UI-visible conflict error (fail-loud).
-- [ ] Add config enum for matching strategy/specificity resolution.
-- [ ] Implement migration set in `pi-extension-config` for legacy `worktree` to `worktrees`.
-- [ ] Add integration test coverage for command-level settings resolution, including onCreate order + failure-stop behavior.
-- [ ] Add integration coverage in both config-service and command-level suites.
-- [ ] Promote stories b2e9f0aa, c91d7e34, d3a54f18, e7b6a902 to `completed` once `test_coverage: full` is satisfied.
+- [ ] [task-b2c3d4e5-add-schema-loader-integration-tests](./task-b2c3d4e5-add-schema-loader-integration-tests.md)
+- [ ] [task-1f2e3d4c-implement-tie-conflict-ui-error](./task-1f2e3d4c-implement-tie-conflict-ui-error.md)
+- [ ] [task-5a6b7c8d-add-matching-strategy-enum](./task-5a6b7c8d-add-matching-strategy-enum.md)
+- [ ] [task-9e0f1a2b-author-migration-set-worktree-to-worktrees](./task-9e0f1a2b-author-migration-set-worktree-to-worktrees.md)
+- [ ] [task-3c4d5e6f-add-command-level-resolution-integration-tests](./task-3c4d5e6f-add-command-level-resolution-integration-tests.md)
+- [ ] [task-7a8b9c0d-add-config-service-integration-coverage](./task-7a8b9c0d-add-config-service-integration-coverage.md)

@@ -4,11 +4,9 @@
 - Status: in-progress
 - Current epic: epic-a7c9d4f2-multi-worktree-settings
 - Active phase: validation and hardening
-- Next milestone: implement clarification outcomes (tie-error UX, strategy enum, migration set, integration tests)
+- Next milestone: execute newly-created Phase 2 task files and collect test evidence to move in-progress stories to `test_coverage: full`.
 
 ## Notes
-- Completed a clarification Q&A pass for ambiguous story criteria.
-- Matching semantics are now aligned to minimatch behavior over full git remote URL target.
-- Added new follow-up scope: configurable matching strategy enum and UI-visible tie conflict handling.
-- Compatibility direction is migration-led via `pi-extension-config` migration set.
-- Integration test scope now explicitly includes `onCreate` execution order and failure-stop behavior across config + command suites.
+- Completed epic/story review and linked associated clarification research.
+- Added concrete task files for schema-loader integration tests, matcher tie conflict behavior, strategy enum, migration set work, and cross-suite integration coverage.
+- Updated epic phase task list, story task links, todo links, and team assignment to current session id.
