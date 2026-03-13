@@ -14,6 +14,7 @@ import { cmdPrune } from './cmds/cmdPrune.ts';
 import { cmdRemove } from './cmds/cmdRemove.ts';
 import { cmdSettings } from './cmds/cmdSettings.ts';
 import { cmdStatus } from './cmds/cmdStatus.ts';
+import { cmdTemplates } from './cmds/cmdTemplates.ts';
 import { createWorktreeConfigService } from './services/config.ts';
 import { getRemoteUrl } from './services/git.ts';
 import { isTieConflict, matchRepo } from './services/repoMatcher.ts';
@@ -31,6 +32,7 @@ Commands:
   /worktree status                 Show current worktree info
   /worktree cd <name>              Print path to worktree
   /worktree prune                  Clean up stale references
+  /worktree templates              Show template variables preview
 
 Configuration (~/.pi/agent/pi-worktrees-settings.json):
   {
@@ -54,7 +56,7 @@ Configuration (~/.pi/agent/pi-worktrees-settings.json):
 Pattern matching: exact URL > most-specific glob > fallback (worktree)
 Matching strategies: fail-on-tie | first-wins | last-wins
 
-Template vars: {{path}}, {{name}}, {{branch}}, {{project}}
+Template vars: {{path}}, {{name}}, {{branch}}, {{project}}, {{mainWorktree}}
 `.trim();
 
 const commands: Record<string, CmdHandler> = {
@@ -69,6 +71,9 @@ const commands: Record<string, CmdHandler> = {
   status: cmdStatus,
   cd: cmdCd,
   prune: cmdPrune,
+  templates: cmdTemplates,
+  vars: cmdTemplates,
+  tokens: cmdTemplates,
 };
 
 const PiWorktreeExtension: ExtensionFactory = function (pi) {

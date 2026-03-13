@@ -74,6 +74,7 @@ In Pi:
 | `/worktree cd <name>` | Print matching worktree path |
 | `/worktree remove <name>` | Remove a worktree (`/worktree rm` alias) |
 | `/worktree prune` | Remove stale worktree metadata |
+| `/worktree templates` | Preview template variables with current + generated values |
 
 ---
 
@@ -139,6 +140,7 @@ Available in `parentDir` and `onCreate` values:
 - `{{name}}` → feature/worktree name
 - `{{branch}}` → created branch name
 - `{{project}}` → repository name
+- `{{mainWorktree}}` → main worktree path (repository root)
 
 ### Migration note
 
