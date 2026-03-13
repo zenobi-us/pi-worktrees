@@ -3,27 +3,27 @@ import { expandTemplate } from '../services/templates.ts';
 import type { WorktreeSettingsConfig } from '../services/config.ts';
 import type { WorktreeCreatedContext } from '../types.ts';
 
-/**
- * Runs the optional post-create hook after a worktree is successfully created.
- *
- * Why: this enables per-project bootstrapping (e.g. dependency/setup commands)
- * while keeping failures non-fatal so worktree creation itself always succeeds.
- */
-export async function runOnCreateHook(
-  createdCtx: WorktreeCreatedContext,
-  settings: WorktreeSettingsConfig,
-  notify: (msg: string, type: 'info' | 'error' | 'warning') => void
-): Promise<void> {
-  if (!settings.onCreate) {
-    return;
-  }
+interface CommandResult {
+  success: boolean;
+  code: number;
+  stdout: string;
+  stderr: string;
+}
 
-  const command = expandTemplate(settings.onCreate, createdCtx);
-  notify(`Running: ${command}`, 'info');
+export interface OnCreateResult {
+  success: boolean;
+  executed: string[];
+  failed?: {
+    command: string;
+    code: number;
+    error: string;
+  };
+}
 
-  await new Promise<void>((resolve) => {
+function runCommand(command: string, cwd: string): Promise<CommandResult> {
+  return new Promise((resolve) => {
     const child = spawn(command, {
-      cwd: createdCtx.path,
+      cwd,
       shell: true,
       stdio: ['ignore', 'pipe', 'pipe'],
     });
@@ -40,21 +40,66 @@ export async function runOnCreateHook(
     });
 
     child.on('close', (code) => {
-      if (code === 0) {
-        if (stdout.trim()) {
-          notify(stdout.trim().slice(0, 200), 'info');
-        }
-        resolve();
-        return;
-      }
-
-      notify(`onCreate failed (exit ${code}): ${stderr.slice(0, 200)}`, 'error');
-      resolve();
+      resolve({
+        success: code === 0,
+        code: code ?? 1,
+        stdout,
+        stderr,
+      });
     });
 
-    child.on('error', (err) => {
-      notify(`onCreate error: ${err.message}`, 'error');
-      resolve();
+    child.on('error', (error) => {
+      resolve({
+        success: false,
+        code: 1,
+        stdout: '',
+        stderr: error.message,
+      });
     });
   });
+}
+
+/**
+ * Runs post-create hooks sequentially.
+ * Stops at first failure and reports the failing command.
+ */
+export async function runOnCreateHook(
+  createdCtx: WorktreeCreatedContext,
+  settings: WorktreeSettingsConfig,
+  // eslint-disable-next-line no-unused-vars
+  notify: (msg: string, type: 'info' | 'error' | 'warning') => void
+): Promise<OnCreateResult> {
+  if (!settings.onCreate) {
+    return { success: true, executed: [] };
+  }
+
+  const commands = Array.isArray(settings.onCreate) ? settings.onCreate : [settings.onCreate];
+  const executed: string[] = [];
+
+  for (const template of commands) {
+    const command = expandTemplate(template, createdCtx);
+    notify(`Running: ${command}`, 'info');
+
+    const result = await runCommand(command, createdCtx.path);
+    executed.push(command);
+
+    if (!result.success) {
+      notify(`onCreate failed (exit ${result.code}): ${result.stderr.slice(0, 200)}`, 'error');
+      return {
+        success: false,
+        executed,
+        failed: {
+          command,
+          code: result.code,
+          error: result.stderr,
+        },
+      };
+    }
+
+    if (result.stdout.trim()) {
+      notify(result.stdout.trim().slice(0, 200), 'info');
+    }
+  }
+
+  return { success: true, executed };
 }
