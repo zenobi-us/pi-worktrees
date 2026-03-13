@@ -1,5 +1,4 @@
 import type { ExtensionCommandContext } from '@mariozechner/pi-coding-agent';
-import { saveWorktreeSettings } from '../services/config/config.ts';
 import type { CommandDeps } from '../types.ts';
 
 const VALID_SETTING_KEYS = ['parentDir', 'onCreate'] as const;
@@ -70,8 +69,12 @@ export async function cmdSettings(
     ctx.ui.notify(`✓ Set ${key} = "${value}"`, 'info');
   }
 
+  //TODO: this used to assume settings was about a single repo/worktree.
+  // but it now needs to think about:
+  // - are we saving entire settings?
+  // - are we saving settings for a repo? new, existing ?
   try {
-    await saveWorktreeSettings(deps.configService, { fallback: newSettings });
+    // await deps.configService.save(newSettings);
   } catch (err) {
     ctx.ui.notify(`Failed to save settings: ${(err as Error).message}`, 'error');
   }

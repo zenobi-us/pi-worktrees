@@ -1,6 +1,6 @@
 import type { ExtensionCommandContext } from '@mariozechner/pi-coding-agent';
 import { basename, join } from 'path';
-import { getWorktreeParentDir, isGitRepo, listWorktrees } from '../services/git.ts';
+import { isGitRepo, listWorktrees } from '../services/git.ts';
 import type { CommandDeps } from '../types.ts';
 
 export async function cmdCd(
@@ -16,7 +16,7 @@ export async function cmdCd(
   }
 
   const worktrees = listWorktrees(ctx.cwd);
-  const parentDir = getWorktreeParentDir(ctx.cwd, deps.settings);
+  const current = deps.configService.current(ctx);
 
   if (!worktreeName) {
     const main = worktrees.find((worktree) => worktree.isMain);
@@ -30,7 +30,7 @@ export async function cmdCd(
     (worktree) =>
       basename(worktree.path) === worktreeName ||
       worktree.path === worktreeName ||
-      worktree.path === join(parentDir, worktreeName)
+      worktree.path === join(current.parentDir, worktreeName)
   );
 
   if (!target) {

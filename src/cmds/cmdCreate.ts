@@ -1,17 +1,10 @@
 import type { ExtensionCommandContext } from '@mariozechner/pi-coding-agent';
 import { join } from 'path';
-import {
-  ensureExcluded,
-  getMainWorktreePath,
-  getProjectName,
-  getWorktreeParentDir,
-  git,
-  isGitRepo,
-  listWorktrees,
-} from '../services/git.ts';
+import { ensureExcluded, git, isGitRepo, listWorktrees } from '../services/git.ts';
 import { runOnCreateHook } from './shared.ts';
 import type { CommandDeps, WorktreeCreatedContext } from '../types.ts';
 
+// TODO: this needs to be rethought so that we use configService.current(ctx.cwd)
 export async function cmdCreate(
   args: string,
   ctx: ExtensionCommandContext,
@@ -27,12 +20,8 @@ export async function cmdCreate(
     ctx.ui.notify('Not in a git repository', 'error');
     return;
   }
-
-  const settings = deps.settings;
-  const project = getProjectName(ctx.cwd);
-  const mainWorktree = getMainWorktreePath(ctx.cwd);
-  const parentDir = getWorktreeParentDir(ctx.cwd, settings);
-  const worktreePath = join(parentDir, featureName);
+  const current = deps.configService.current(ctx);
+  const worktreePath = join(current.parentDir, featureName);
   const branchName = `feature/${featureName}`;
 
   const existing = listWorktrees(ctx.cwd);
@@ -49,12 +38,12 @@ export async function cmdCreate(
     // branch doesn't exist
   }
 
-  ensureExcluded(ctx.cwd, parentDir);
+  ensureExcluded(ctx.cwd, current.parentDir);
 
   ctx.ui.notify(`Creating worktree: ${featureName}`, 'info');
 
   try {
-    git(['worktree', 'add', '-b', branchName, worktreePath], mainWorktree);
+    git(['worktree', 'add', '-b', branchName, worktreePath], current.mainWorktree);
   } catch (err) {
     ctx.ui.notify(`Failed to create worktree: ${(err as Error).message}`, 'error');
     return;
@@ -64,11 +53,10 @@ export async function cmdCreate(
     path: worktreePath,
     name: featureName,
     branch: branchName,
-    project,
-    mainWorktree,
+    ...current,
   };
 
-  await runOnCreateHook(createdCtx, settings, ctx.ui.notify.bind(ctx.ui));
+  await runOnCreateHook(createdCtx, current, ctx.ui.notify.bind(ctx.ui));
 
   ctx.ui.notify(`✓ Worktree created!\n  Path: ${worktreePath}\n  Branch: ${branchName}`, 'info');
 }

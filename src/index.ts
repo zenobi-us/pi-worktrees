@@ -6,6 +6,7 @@
  */
 
 import type { ExtensionFactory } from '@mariozechner/pi-coding-agent';
+import type { CmdHandler } from './types.ts';
 import { cmdCd } from './cmds/cmdCd.ts';
 import { cmdCreate } from './cmds/cmdCreate.ts';
 import { cmdInit } from './cmds/cmdInit.ts';
@@ -15,10 +16,7 @@ import { cmdRemove } from './cmds/cmdRemove.ts';
 import { cmdSettings } from './cmds/cmdSettings.ts';
 import { cmdStatus } from './cmds/cmdStatus.ts';
 import { cmdTemplates } from './cmds/cmdTemplates.ts';
-import { createWorktreeConfigService } from './services/config.ts';
-import { getRemoteUrl } from './services/git.ts';
-import { isTieConflict, matchRepo } from './services/repoMatcher.ts';
-import type { CmdHandler } from './types.ts';
+import { createPiWorktreeConfigService } from './services/config/config.ts';
 
 const HELP_TEXT = `
 /worktree - Git worktree management
@@ -76,8 +74,8 @@ const commands: Record<string, CmdHandler> = {
   tokens: cmdTemplates,
 };
 
-const PiWorktreeExtension: ExtensionFactory = function (pi) {
-  const configServicePromise = createWorktreeConfigService();
+const PiWorktreeExtension: ExtensionFactory = async function (pi) {
+  const configService = await createPiWorktreeConfigService();
 
   pi.registerCommand('worktree', {
     description: 'Git worktree management for isolated workspaces',
@@ -90,25 +88,8 @@ const PiWorktreeExtension: ExtensionFactory = function (pi) {
         return;
       }
 
-      const configService = await configServicePromise;
       await configService.reload();
-
-      const remoteUrl = getRemoteUrl(ctx.cwd);
-      let settings = configService.config.fallback;
-
-      if (remoteUrl) {
-        const matchResult = matchRepo(remoteUrl, configService.config);
-
-        if (isTieConflict(matchResult)) {
-          ctx.ui.notify(`Config Error: ${matchResult.message}`, 'error');
-          return;
-        }
-
-        settings = matchResult.settings;
-      }
-
       await command(rest.join(' '), ctx, {
-        settings,
         configService,
       });
     },

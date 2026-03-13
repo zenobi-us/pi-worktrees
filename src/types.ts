@@ -1,5 +1,6 @@
 import type { ExtensionCommandContext } from '@mariozechner/pi-coding-agent';
-import type { WorktreeConfigService, WorktreeSettingsConfig } from './services/config.ts';
+import type { PiWorktreeConfigService } from './services/config/config.ts';
+import { WorktreeSettingsConfig } from './services/config/schema.ts';
 
 export interface WorktreeCreatedContext {
   path: string;
@@ -11,7 +12,7 @@ export interface WorktreeCreatedContext {
 
 export interface CommandDeps {
   settings: WorktreeSettingsConfig;
-  configService: WorktreeConfigService;
+  configService: PiWorktreeConfigService;
 }
 
 export type CmdHandler = (

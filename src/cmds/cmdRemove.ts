@@ -20,7 +20,11 @@ export async function cmdRemove(
   }
 
   const worktrees = listWorktrees(ctx.cwd);
-  const parentDir = getWorktreeParentDir(ctx.cwd, deps.settings);
+  const parentDir = getWorktreeParentDir(
+    ctx.cwd,
+    deps.configService.worktrees,
+    deps.configService.config.matchingStrategy
+  );
 
   const target = worktrees.find(
     (worktree) =>

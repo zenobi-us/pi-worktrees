@@ -1,6 +1,6 @@
 import type { ExtensionCommandContext } from '@mariozechner/pi-coding-agent';
-import { saveWorktreeSettings, type WorktreeSettingsConfig } from '../services/config/config.ts';
 import type { CommandDeps } from '../types.ts';
+import { WorktreeSettingsConfig } from '../services/config/schema.ts';
 
 export async function cmdInit(
   _args: string,
@@ -110,7 +110,9 @@ export async function cmdInit(
   }
 
   try {
-    await saveWorktreeSettings(deps.configService, { fallback: newSettings });
+    // TODO: See todo in ./cmds/cmdSettings.ts about saving paradigm
+
+    // await saveWorktreeSettings(deps.configService, { fallback: newSettings }); /
     ctx.ui.notify(`✓ Settings saved`, 'info');
 
     const finalConfig = JSON.stringify({ worktree: newSettings }, null, 2);

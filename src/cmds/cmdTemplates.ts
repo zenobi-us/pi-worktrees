@@ -52,7 +52,11 @@ export async function cmdTemplates(
   const currentBranch = getCurrentBranch(ctx.cwd);
   const generatedName = SAMPLE_FEATURE_NAME;
   const generatedBranch = `feature/${generatedName}`;
-  const parentDir = getWorktreeParentDir(ctx.cwd, deps.settings);
+  const parentDir = getWorktreeParentDir(
+    ctx.cwd,
+    deps.configService.worktrees,
+    deps.configService.config.matchingStrategy
+  );
   const generatedPath = join(parentDir, generatedName);
 
   const previewCtx = {
