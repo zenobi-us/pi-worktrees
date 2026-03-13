@@ -1,4 +1,4 @@
-import type { MatchingStrategy, ResolvedConfig, WorktreeSettingsConfig } from './config.ts';
+import type { MatchingStrategy, ResolvedConfig, WorktreeSettingsConfig } from './config/config.ts';
 import { normalizeGitUrl } from './git.ts';
 
 export interface MatchResult {

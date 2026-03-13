@@ -7,7 +7,7 @@
       "dependencies": {
         "@mariozechner/pi-coding-agent": "~0.52.9",
         "@mariozechner/pi-tui": "~0.52.9",
-        "@zenobius/pi-extension-config": "^0.0.2",
+        "@zenobius/pi-extension-config": "^0.1.0",
         "typebox": "^1.0.81",
       },
       "devDependencies": {
@@ -461,7 +461,7 @@
 
     "@vitest/utils": ["@vitest/utils@3.2.4", "", { "dependencies": { "@vitest/pretty-format": "3.2.4", "loupe": "^3.1.4", "tinyrainbow": "^2.0.0" } }, "sha512-fB2V0JFrQSMsCo9HiSq3Ezpdv4iYaXRG1Sx8edX3MwxfyNn83mKiGzOcH+Fkxt4MHxr3y42fQi1oeAInqgX2QA=="],
 
-    "@zenobius/pi-extension-config": ["@zenobius/pi-extension-config@0.0.2", "", { "dependencies": { "@standard-schema/spec": "^1.1.0", "nconf": "^0.13.0" } }, "sha512-UhtydVAj44Kw9FJCa3JH381E5TGQHEJE/pMclzp16Nytc9AQMbC7MvCd2Q9l7F1cfzsD52cLwgX447+FHy7bfQ=="],
+    "@zenobius/pi-extension-config": ["@zenobius/pi-extension-config@0.1.0", "", { "dependencies": { "@standard-schema/spec": "^1.1.0", "nconf": "^0.13.0" } }, "sha512-HfNol4fKbVfe5V08OZx+9u4a4uuvTeOPIdnBluCgr9h37OMONmHVD8peAWBrkrIacSkZk5Llz7pFeEkWv0HZ/w=="],
 
     "acorn": ["acorn@8.15.0", "", { "bin": { "acorn": "bin/acorn" } }, "sha512-NZyJarBfL7nWwIq+FDL6Zp/yHEhePMNnnJ0y3qfieCrmNvYct8uvtiV41UvlSe6apAfk0fY1FbWx+NwfmpvtTg=="],
 

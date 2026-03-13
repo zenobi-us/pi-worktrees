@@ -1,6 +1,6 @@
 import { spawn } from 'child_process';
 import { expandTemplate } from '../services/templates.ts';
-import type { WorktreeSettingsConfig } from '../services/config.ts';
+import type { WorktreeSettingsConfig } from '../services/config/config.ts';
 import type { WorktreeCreatedContext } from '../types.ts';
 
 interface CommandResult {

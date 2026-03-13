@@ -1,5 +1,5 @@
 import type { ExtensionCommandContext } from '@mariozechner/pi-coding-agent';
-import { saveWorktreeSettings, type WorktreeSettingsConfig } from '../services/config.ts';
+import { saveWorktreeSettings, type WorktreeSettingsConfig } from '../services/config/config.ts';
 import type { CommandDeps } from '../types.ts';
 
 export async function cmdInit(
@@ -76,7 +76,7 @@ export async function cmdInit(
     : (currentSettings.onCreate ?? 'mise setup');
 
   const onCreate = await ctx.ui.input(
-    'Enter command to run after creating worktree (or leave empty):\nSupports: {{path}}, {{name}}, {{branch}}, {{project}}',
+    'Enter command to run after creating worktree (or leave empty):\nSupports: {{path}}, {{name}}, {{branch}}, {{project}}, {{mainWorktree}}',
     onCreateDefault
   );
 

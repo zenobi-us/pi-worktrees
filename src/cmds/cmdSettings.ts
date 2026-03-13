@@ -1,5 +1,5 @@
 import type { ExtensionCommandContext } from '@mariozechner/pi-coding-agent';
-import { saveWorktreeSettings } from '../services/config.ts';
+import { saveWorktreeSettings } from '../services/config/config.ts';
 import type { CommandDeps } from '../types.ts';
 
 const VALID_SETTING_KEYS = ['parentDir', 'onCreate'] as const;

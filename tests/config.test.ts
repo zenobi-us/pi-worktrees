@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { configMigrations } from '../src/services/config/migrations/01-flat-single.ts';
 import {
   normalizeConfig,
   saveWorktreeSettings,
@@ -78,5 +79,51 @@ describe('saveWorktreeSettings', () => {
     expect(set).toHaveBeenCalledWith('matchingStrategy', matchingStrategy, 'home');
     expect(set).toHaveBeenCalledWith('worktree', fallback, 'home');
     expect(save).toHaveBeenCalledWith('home');
+  });
+});
+
+describe('configMigrations', () => {
+  it('migrates legacy flat keys into worktree', async () => {
+    const migration = configMigrations[0];
+
+    const migrated = await migration.up({
+      parentDir: '~/legacy-flat',
+      onCreate: 'mise setup',
+      matchingStrategy: 'first-wins',
+    });
+
+    expect(migrated).toEqual({
+      worktree: {
+        parentDir: '~/legacy-flat',
+        onCreate: 'mise setup',
+      },
+      matchingStrategy: 'first-wins',
+    });
+  });
+
+  it('restores legacy flat keys on down migration', async () => {
+    const migration = configMigrations[0];
+
+    const reverted = await migration.down({
+      worktree: {
+        parentDir: '~/fallback',
+        onCreate: ['mise install', 'bun install'],
+      },
+      worktrees: {
+        'github.com/org/repo': {
+          parentDir: '~/repo',
+        },
+      },
+    });
+
+    expect(reverted).toEqual({
+      parentDir: '~/fallback',
+      onCreate: ['mise install', 'bun install'],
+      worktrees: {
+        'github.com/org/repo': {
+          parentDir: '~/repo',
+        },
+      },
+    });
   });
 });

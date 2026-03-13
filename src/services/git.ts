@@ -1,7 +1,7 @@
 import { execSync } from 'child_process';
 import { appendFileSync, existsSync, readFileSync, statSync } from 'fs';
 import { basename, dirname, join, relative, resolve } from 'path';
-import type { WorktreeSettingsConfig } from './config.ts';
+import type { WorktreeSettingsConfig } from './config/config.ts';
 import { expandTemplate } from './templates.ts';
 
 export interface WorktreeInfo {
