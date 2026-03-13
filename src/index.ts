@@ -15,6 +15,8 @@ import { cmdRemove } from './cmds/cmdRemove.ts';
 import { cmdSettings } from './cmds/cmdSettings.ts';
 import { cmdStatus } from './cmds/cmdStatus.ts';
 import { createWorktreeConfigService } from './services/config.ts';
+import { getRemoteUrl } from './services/git.ts';
+import { isTieConflict, matchRepo } from './services/repoMatcher.ts';
 import type { CmdHandler } from './types.ts';
 
 const HELP_TEXT = `
@@ -30,30 +32,29 @@ Commands:
   /worktree cd <name>              Print path to worktree
   /worktree prune                  Clean up stale references
 
-Settings:
-  /worktree settings               Show all settings
-  /worktree settings parentDir     Get parentDir value
-  /worktree settings parentDir ~   Set parentDir value
-  /worktree settings onCreate      Get onCreate value
-  /worktree settings onCreate ""   Clear onCreate value
-
-Configuration (~/.pi/agent/pi-worktrees.config.json):
+Configuration (~/.pi/agent/pi-worktrees-settings.json):
   {
+    "worktrees": {
+      "github.com/org/repo": {
+        "parentDir": "~/work/org",
+        "onCreate": ["mise install", "bun install"]
+      },
+      "github.com/org/*": {
+        "parentDir": "~/work/org-other",
+        "onCreate": "make setup"
+      }
+    },
+    "matchingStrategy": "fail-on-tie",
     "worktree": {
-      "parentDir": "...",        // Override default parent directory
-      "onCreate": "mise setup"   // Command to run after creation
+      "parentDir": "~/.worktrees/{{project}}",
+      "onCreate": "mise setup"
     }
   }
 
-Template vars: {{path}}, {{name}}, {{branch}}, {{project}}
+Pattern matching: exact URL > most-specific glob > fallback (worktree)
+Matching strategies: fail-on-tie | first-wins | last-wins
 
-Examples:
-  /worktree init
-  /worktree settings parentDir "~/.worktrees/{{project}}"
-  /worktree create auth-feature
-  /worktree list
-  /worktree cd auth-feature
-  /worktree remove auth-feature
+Template vars: {{path}}, {{name}}, {{branch}}, {{project}}
 `.trim();
 
 const commands: Record<string, CmdHandler> = {
@@ -87,8 +88,22 @@ const PiWorktreeExtension: ExtensionFactory = function (pi) {
       const configService = await configServicePromise;
       await configService.reload();
 
+      const remoteUrl = getRemoteUrl(ctx.cwd);
+      let settings = configService.config.fallback;
+
+      if (remoteUrl) {
+        const matchResult = matchRepo(remoteUrl, configService.config);
+
+        if (isTieConflict(matchResult)) {
+          ctx.ui.notify(`Config Error: ${matchResult.message}`, 'error');
+          return;
+        }
+
+        settings = matchResult.settings;
+      }
+
       await command(rest.join(' '), ctx, {
-        settings: configService.config.worktree,
+        settings,
         configService,
       });
     },

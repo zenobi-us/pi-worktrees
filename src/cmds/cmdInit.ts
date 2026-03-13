@@ -71,9 +71,13 @@ export async function cmdInit(
     parentDir = currentSettings.parentDir;
   }
 
+  const onCreateDefault = Array.isArray(currentSettings.onCreate)
+    ? currentSettings.onCreate.join(' && ')
+    : (currentSettings.onCreate ?? 'mise setup');
+
   const onCreate = await ctx.ui.input(
     'Enter command to run after creating worktree (or leave empty):\nSupports: {{path}}, {{name}}, {{branch}}, {{project}}',
-    currentSettings.onCreate || 'mise setup'
+    onCreateDefault
   );
 
   if (onCreate === undefined) {
@@ -106,7 +110,7 @@ export async function cmdInit(
   }
 
   try {
-    await saveWorktreeSettings(deps.configService, newSettings);
+    await saveWorktreeSettings(deps.configService, { fallback: newSettings });
     ctx.ui.notify(`✓ Settings saved`, 'info');
 
     const finalConfig = JSON.stringify({ worktree: newSettings }, null, 2);

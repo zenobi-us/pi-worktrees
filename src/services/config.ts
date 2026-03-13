@@ -1,13 +1,24 @@
 import { createConfigService, type ConfigService } from '@zenobius/pi-extension-config';
-import { Object as TypeObject, Optional, Static, String as TypeString } from 'typebox';
+import {
+  Array as TypeArray,
+  Literal,
+  Object as TypeObject,
+  Optional,
+  Record as TypeRecord,
+  Static,
+  String as TypeString,
+  Union,
+} from 'typebox';
 import { Parse } from 'typebox/value';
 
 const APP_NAME = 'pi-worktrees';
 
+const OnCreateSchema = Union([TypeString(), TypeArray(TypeString())]);
+
 const WorktreeSettingsSchema = TypeObject(
   {
     parentDir: Optional(TypeString()),
-    onCreate: Optional(TypeString()),
+    onCreate: Optional(OnCreateSchema),
   },
   {
     $id: 'WorktreeSettingsConfig',
@@ -15,14 +26,22 @@ const WorktreeSettingsSchema = TypeObject(
   }
 );
 
-export type WorktreeSettingsConfig = Static<typeof WorktreeSettingsSchema>;
+const MatchingStrategySchema = Union([
+  Literal('fail-on-tie'),
+  Literal('first-wins'),
+  Literal('last-wins'),
+]);
+
+const WorktreesMapSchema = TypeRecord(TypeString(), WorktreeSettingsSchema);
 
 const UnresolvedConfigSchema = TypeObject(
   {
+    worktrees: Optional(WorktreesMapSchema),
+    matchingStrategy: Optional(MatchingStrategySchema),
     worktree: Optional(WorktreeSettingsSchema),
     // legacy flat shape support
     parentDir: Optional(TypeString()),
-    onCreate: Optional(TypeString()),
+    onCreate: Optional(OnCreateSchema),
   },
   {
     $id: 'UnresolvedConfig',
@@ -34,7 +53,9 @@ type UnresolvedConfig = Static<typeof UnresolvedConfigSchema>;
 
 const ResolvedConfigSchema = TypeObject(
   {
-    worktree: WorktreeSettingsSchema,
+    worktrees: WorktreesMapSchema,
+    matchingStrategy: MatchingStrategySchema,
+    fallback: WorktreeSettingsSchema,
   },
   {
     $id: 'ResolvedConfig',
@@ -42,6 +63,8 @@ const ResolvedConfigSchema = TypeObject(
   }
 );
 
+export type WorktreeSettingsConfig = Static<typeof WorktreeSettingsSchema>;
+export type MatchingStrategy = Static<typeof MatchingStrategySchema>;
 export type ResolvedConfig = Static<typeof ResolvedConfigSchema>;
 export type WorktreeConfigService = ConfigService<ResolvedConfig>;
 
@@ -67,33 +90,38 @@ export function normalizeConfig(value: unknown): ResolvedConfig {
   const parsed = Parse(UnresolvedConfigSchema, value);
 
   return Parse(ResolvedConfigSchema, {
-    worktree: buildWorktreeSettings(parsed),
+    worktrees: parsed.worktrees ?? {},
+    matchingStrategy: parsed.matchingStrategy ?? 'fail-on-tie',
+    fallback: buildWorktreeSettings(parsed),
   });
 }
 
 export async function createWorktreeConfigService(): Promise<WorktreeConfigService> {
   return createConfigService<ResolvedConfig>(APP_NAME, {
-    defaults: {
-      worktree: {},
-    },
+    defaults: {},
     parse: normalizeConfig,
   });
 }
 
 export async function saveWorktreeSettings(
   configService: WorktreeConfigService,
-  worktreeSettings: WorktreeSettingsConfig
+  settings: {
+    worktrees?: Record<string, WorktreeSettingsConfig>;
+    matchingStrategy?: MatchingStrategy;
+    fallback?: WorktreeSettingsConfig;
+  }
 ): Promise<void> {
-  const persistable: WorktreeSettingsConfig = {};
-
-  if (worktreeSettings.parentDir !== undefined) {
-    persistable.parentDir = worktreeSettings.parentDir;
+  if (settings.worktrees !== undefined) {
+    await configService.set('worktrees', settings.worktrees, 'home');
   }
 
-  if (typeof worktreeSettings.onCreate === 'string') {
-    persistable.onCreate = worktreeSettings.onCreate;
+  if (settings.matchingStrategy !== undefined) {
+    await configService.set('matchingStrategy', settings.matchingStrategy, 'home');
   }
 
-  await configService.set('worktree', persistable, 'home');
+  if (settings.fallback !== undefined) {
+    await configService.set('worktree', settings.fallback, 'home');
+  }
+
   await configService.save('home');
 }

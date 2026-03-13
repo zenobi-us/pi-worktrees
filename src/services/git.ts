@@ -28,6 +28,49 @@ export function git(args: string[], cwd?: string): string {
 }
 
 /**
+ * Normalize git remote URL into canonical https form for deterministic matching.
+ */
+export function normalizeGitUrl(url: string): string {
+  const trimmed = url.trim();
+  if (!trimmed) {
+    return '';
+  }
+
+  let normalized = trimmed.replace(/\.git$/i, '');
+
+  const sshShortMatch = normalized.match(/^git@([^:]+):(.+)$/i);
+  if (sshShortMatch) {
+    const [, host, path] = sshShortMatch;
+    normalized = `https://${host}/${path}`;
+  }
+
+  const sshLongMatch = normalized.match(/^ssh:\/\/git@([^/]+)\/(.+)$/i);
+  if (sshLongMatch) {
+    const [, host, path] = sshLongMatch;
+    normalized = `https://${host}/${path}`;
+  }
+
+  normalized = normalized.replace(/^(https?:\/\/|git:\/\/)/i, 'https://');
+  normalized = normalized.replace(/^https:\/\/[^@]+@/i, 'https://');
+
+  normalized = normalized.replace(/\/+/g, '/');
+  normalized = normalized.replace(/^https:\//, 'https://');
+
+  return normalized.toLowerCase();
+}
+
+/**
+ * Get git remote URL for repository.
+ */
+export function getRemoteUrl(cwd: string, remote = 'origin'): string | null {
+  try {
+    return git(['remote', 'get-url', remote], cwd);
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Check if we're in a git repository.
  */
 export function isGitRepo(cwd: string): boolean {

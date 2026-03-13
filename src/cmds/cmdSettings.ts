@@ -25,7 +25,11 @@ export async function cmdSettings(
       '━━━━━━━━━━━━━━━━━━',
       '',
       `parentDir: ${currentSettings.parentDir || '(default: ../<project>.worktrees/)'}`,
-      `onCreate:  ${currentSettings.onCreate || '(none)'}`,
+      `onCreate:  ${
+        Array.isArray(currentSettings.onCreate)
+          ? currentSettings.onCreate.join(' && ')
+          : (currentSettings.onCreate ?? '(none)')
+      }`,
       '',
     ];
     ctx.ui.notify(lines.join('\n'), 'info');
@@ -43,7 +47,8 @@ export async function cmdSettings(
   if (!value && parts.length === 1) {
     const currentValue = currentSettings[key];
     if (currentValue) {
-      ctx.ui.notify(`${key}: ${currentValue}`, 'info');
+      const displayValue = Array.isArray(currentValue) ? currentValue.join(' && ') : currentValue;
+      ctx.ui.notify(`${key}: ${displayValue}`, 'info');
       return;
     }
 
@@ -66,7 +71,7 @@ export async function cmdSettings(
   }
 
   try {
-    await saveWorktreeSettings(deps.configService, newSettings);
+    await saveWorktreeSettings(deps.configService, { fallback: newSettings });
   } catch (err) {
     ctx.ui.notify(`Failed to save settings: ${(err as Error).message}`, 'error');
   }
