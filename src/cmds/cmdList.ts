@@ -1,7 +1,7 @@
-import type { ExtensionCommandContext } from '@mariozechner/pi-coding-agent';
 import { isGitRepo, listWorktrees } from '../services/git.ts';
+import { CmdHandler } from '../types.ts';
 
-export async function cmdList(_args: string, ctx: ExtensionCommandContext): Promise<void> {
+export const cmdList: CmdHandler = async (_args, ctx, deps) => {
   if (!isGitRepo(ctx.cwd)) {
     ctx.ui.notify('Not in a git repository', 'error');
     return;
@@ -22,5 +22,14 @@ export async function cmdList(_args: string, ctx: ExtensionCommandContext): Prom
     return `${worktree.branch}${markers ? ' ' + markers : ''}\n    ${worktree.path}`;
   });
 
-  ctx.ui.notify(`Worktrees:\n\n${lines.join('\n\n')}`, 'info');
-}
+  const configured = Array.from(deps.configService.worktrees.entries()).map(
+    ([pattern, settings]) => {
+      return `${pattern}\n    ${settings.parentDir}\n    ${settings.onCreate}`;
+    }
+  );
+
+  ctx.ui.notify(
+    `Worktrees:\n\n${lines.join('\n\n')} \n\nConfigured:\n\n${configured.join('\n\n')}`,
+    'info'
+  );
+};
