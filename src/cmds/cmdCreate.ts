@@ -3,6 +3,7 @@ import { join } from 'path';
 import { ensureExcluded, git, isGitRepo, listWorktrees } from '../services/git.ts';
 import { runOnCreateHook } from './shared.ts';
 import type { CommandDeps, WorktreeCreatedContext } from '../types.ts';
+import { DefaultLogfileTemplate } from '../services/config/config.ts';
 
 function sanitizePathPart(value: string): string {
   return value.replace(/[^a-zA-Z0-9._-]/g, '-');
@@ -70,10 +71,10 @@ export async function cmdCreate(
     ...current,
   };
 
-  const sessionId = sanitizePathPart(ctx.sessionManager.getSessionId() || 'session');
+  const sessionId = sanitizePathPart(ctx.sessionManager?.getSessionId?.() || 'session');
   const safeName = sanitizePathPart(featureName);
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-  const logPath = resolveLogfilePath(current.logfile, {
+  const logPath = resolveLogfilePath(current.logfile ?? DefaultLogfileTemplate, {
     sessionId,
     name: safeName,
     timestamp,
