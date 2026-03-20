@@ -71,7 +71,7 @@ export async function cmdCreate(
     ...current,
   };
 
-  const sessionId = sanitizePathPart(ctx.sessionManager?.getSessionId?.() ?? 'session');
+  const sessionId = sanitizePathPart(ctx.sessionManager?.getSessionId?.() || 'session');
   const safeName = sanitizePathPart(featureName);
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
   const logPath = resolveLogfilePath(current.logfile ?? DefaultLogfileTemplate, {
