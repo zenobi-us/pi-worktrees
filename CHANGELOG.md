@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.2.0](https://github.com/zenobi-us/pi-worktrees/compare/v0.1.0...v0.2.0) (2026-03-20)
+
+
+### Features
+
+* add config migrations and reorganize config module ([b0e88d8](https://github.com/zenobi-us/pi-worktrees/commit/b0e88d8e42a439c15c380fc404928e747e3612f9))
+* add template preview command and mainWorktree token ([36de89a](https://github.com/zenobi-us/pi-worktrees/commit/36de89ac0625c412ae3b02f4e052155be5593df1))
+* **cmdRemove:** add interactive worktree selection flow ([b7228c5](https://github.com/zenobi-us/pi-worktrees/commit/b7228c5c1bc5a157b2b3e3e00aaa6f626129ceb7))
+* **config:** add multi-worktree matching and fallback resolution ([1a1c8fd](https://github.com/zenobi-us/pi-worktrees/commit/1a1c8fd89ad4cb549c6e980ddb200f489b7bc553))
+* **config:** add versioned legacy worktree migration chain ([8a4588a](https://github.com/zenobi-us/pi-worktrees/commit/8a4588a60efd6ed2cc48a69aa5a241c0d7162361))
+* **config:** migrate to worktreeRoot and enrich onCreate logging ([33e95d1](https://github.com/zenobi-us/pi-worktrees/commit/33e95d14fc07804295209571ac4c0003e23647de))
+* **config:** switch to pi-extension-config ([920e7b7](https://github.com/zenobi-us/pi-worktrees/commit/920e7b74733e57ca882cc06b694f2b933f2cd168))
+* **list:** show configured worktree mappings ([7cf815c](https://github.com/zenobi-us/pi-worktrees/commit/7cf815cd6691e1a3181ed3cc2bc354081af97e6a))
+* **matcher:** normalize repo refs and cover matcher edge cases ([bfee047](https://github.com/zenobi-us/pi-worktrees/commit/bfee0476adff94147352ae83175dbb55c97e02dd))
+
+
+### Bug Fixes
+
+* **config:** reload store before reads and pass settings to handlers ([a43011a](https://github.com/zenobi-us/pi-worktrees/commit/a43011ad9e2b434c1d3a9bde49e2486407ac47d1))
+* **extension:** surface matcher and command execution errors ([e2860d8](https://github.com/zenobi-us/pi-worktrees/commit/e2860d806ff925aba90782507b366492f14196b3))
+* handle missing session manager/logfile in cmdCreate ([#5](https://github.com/zenobi-us/pi-worktrees/issues/5)) ([f39476f](https://github.com/zenobi-us/pi-worktrees/commit/f39476fe411b02928c701b85097da33629b8a8f4))
+* remove unused settings path ([3d94a8a](https://github.com/zenobi-us/pi-worktrees/commit/3d94a8a87d26b83c859c3eaa0ba69c35efe8de92))
+
 ## [0.1.0](https://github.com/zenobi-us/pi-worktrees/compare/v0.0.2...v0.1.0) (2026-02-13)
 
 
