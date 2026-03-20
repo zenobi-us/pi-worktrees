@@ -254,12 +254,19 @@ export type Result =
   | ({ type: 'first-wins' } & MatchResult)
   | ({ type: 'last-wins' } & MatchResult);
 
-function stripProtocol(value: string): string {
-  return value.replace(/^https:\/\//, '');
+function normalizeRepoReference(value: string): string {
+  const trimmed = value.trim();
+
+  const withoutProtocol = trimmed
+    .replace(/^ssh:\/\//, '')
+    .replace(/^https?:\/\//, '')
+    .replace(/^git@([^:]+):/, '$1/');
+
+  return withoutProtocol.replace(/\.git$/, '').replace(/\/+$/, '');
 }
 
 function calculateSpecificity(normalizedPattern: string): number {
-  const segments = stripProtocol(normalizedPattern).split('/').filter(Boolean);
+  const segments = normalizedPattern.split('/').filter(Boolean);
   let score = 0;
 
   for (const segment of segments) {
@@ -326,13 +333,13 @@ export function matchRepo(
     };
   }
 
-  const urlWithoutProtocol = stripProtocol(url);
+  const normalizedUrl = normalizeRepoReference(url);
   const scoredMatches: ScoredMatch[] = [];
 
   for (const [pattern, settings] of repos.entries()) {
-    const patternWithoutProtocol = stripProtocol(pattern);
+    const normalizedPattern = normalizeRepoReference(pattern);
 
-    if (url === pattern || urlWithoutProtocol === patternWithoutProtocol) {
+    if (normalizedUrl === normalizedPattern) {
       return {
         settings,
         matchedPattern: pattern,
@@ -340,11 +347,11 @@ export function matchRepo(
       };
     }
 
-    if (globMatch(urlWithoutProtocol, patternWithoutProtocol)) {
+    if (globMatch(normalizedUrl, normalizedPattern)) {
       scoredMatches.push({
         pattern,
-        normalizedPattern: patternWithoutProtocol,
-        specificity: calculateSpecificity(patternWithoutProtocol),
+        normalizedPattern,
+        specificity: calculateSpecificity(normalizedPattern),
       });
     }
   }
@@ -363,7 +370,7 @@ export function matchRepo(
   const tiedMatches = scoredMatches.filter((match) => match.specificity === topSpecificity);
 
   if (tiedMatches.length > 1) {
-    return resolveTie(tiedMatches, urlWithoutProtocol, repos, matchStrategy);
+    return resolveTie(tiedMatches, normalizedUrl, repos, matchStrategy);
   }
 
   const winner = scoredMatches[0].pattern;

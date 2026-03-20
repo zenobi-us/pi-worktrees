@@ -6,7 +6,41 @@ function makeRepos(entries: Array<[string, WorktreeSettingsConfig]>) {
   return new Map(entries);
 }
 
-describe('matchRepo tie behavior', () => {
+describe('matchRepo normalization and strategy behavior', () => {
+  it('normalizes ssh/https forms to the same repo target', () => {
+    const repos = makeRepos([['github.com/org/repo', { parentDir: '/tmp/exact' }]]);
+
+    const httpsResult = matchRepo('https://github.com/org/repo.git', repos);
+    const sshResult = matchRepo('git@github.com:org/repo.git', repos);
+
+    expect(httpsResult.type).toBe('exact');
+    expect(sshResult.type).toBe('exact');
+
+    if (httpsResult.type === 'tie-conflict' || sshResult.type === 'tie-conflict') {
+      throw new Error('Expected exact normalized match result');
+    }
+
+    expect(httpsResult.matchedPattern).toBe('github.com/org/repo');
+    expect(sshResult.matchedPattern).toBe('github.com/org/repo');
+  });
+
+  it('uses segment-based specificity for glob ranking', () => {
+    const repos = makeRepos([
+      ['github.com/org/*/*', { parentDir: '/tmp/less-specific' }],
+      ['github.com/org/team/*', { parentDir: '/tmp/more-specific' }],
+    ]);
+
+    const result = matchRepo('https://github.com/org/team/repo', repos);
+
+    expect(result.type).toBe('exact');
+    if (result.type === 'tie-conflict') {
+      throw new Error('Expected deterministic non-tie result');
+    }
+
+    expect(result.matchedPattern).toBe('github.com/org/team/*');
+    expect(result.settings.parentDir).toBe('/tmp/more-specific');
+  });
+
   it('returns tie-conflict by default (fail-on-tie) with actionable details', () => {
     const repos = makeRepos([
       ['github.com/org/*', { parentDir: '/tmp/a' }],

@@ -5,6 +5,7 @@ import { migration as migration01 } from '../../src/services/config/migrations/0
 import { migration as migration02 } from '../../src/services/config/migrations/02-worktree-to-worktrees.ts';
 import { PiWorktreeConfigSchema } from '../../src/services/config/schema.ts';
 import { Parse } from 'typebox/value';
+import { matchRepo } from '../../src/services/git.ts';
 
 describe('config migration set', () => {
   it('is versioned and executable as an ordered migration set', async () => {
@@ -53,6 +54,35 @@ describe('config migration set', () => {
         },
       },
     });
+  });
+
+  it('uses migrated worktrees fallback pattern for no-match resolution', async () => {
+    const migrations = [migration01, migration02];
+
+    const migrationResult = await runMigrations({
+      config: {
+        worktree: {
+          parentDir: '/tmp/legacy-fallback.worktrees',
+          onCreate: 'echo legacy-fallback',
+        },
+      },
+      currentVersion: 1,
+      migrations,
+      parse: (value: unknown) => Parse(PiWorktreeConfigSchema, value),
+    });
+
+    const migrated = Parse(PiWorktreeConfigSchema, migrationResult.config);
+    const repos = new Map(Object.entries(migrated.worktrees ?? {}));
+
+    const result = matchRepo('https://github.com/unmatched/project', repos, 'fail-on-tie');
+
+    expect(result.type).toBe('exact');
+    if (result.type === 'tie-conflict') {
+      throw new Error('Expected fallback exact match from migrated ** pattern');
+    }
+
+    expect(result.matchedPattern).toBe('**');
+    expect(result.settings.parentDir).toBe('/tmp/legacy-fallback.worktrees');
   });
 
   it('keeps migration behavior policy-driven through framework validation', async () => {
