@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/zenobi-us/pi-worktrees/compare/v0.3.0...v0.4.0) (2026-03-21)
+
+
+### Features
+
+* **config:** normalize fallback settings before repo match (fallback-normalization-from-main) ([#8](https://github.com/zenobi-us/pi-worktrees/issues/8)) ([c8952f8](https://github.com/zenobi-us/pi-worktrees/commit/c8952f8044eae285750ffed373f88972620912f6))
+
 ## [0.3.0](https://github.com/zenobi-us/pi-worktrees/compare/v0.2.0...v0.3.0) (2026-03-21)
 
 
