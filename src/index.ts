@@ -17,6 +17,7 @@ import { cmdSettings } from './cmds/cmdSettings.ts';
 import { cmdStatus } from './cmds/cmdStatus.ts';
 import { cmdTemplates } from './cmds/cmdTemplates.ts';
 import { createPiWorktreeConfigService } from './services/config/config.ts';
+import { createCompletionFactory } from './services/completions.ts';
 
 const HELP_TEXT = `
 /worktree - Git worktree management
@@ -112,8 +113,13 @@ const PiWorktreeExtension: ExtensionFactory = async function (pi) {
     }
   });
 
+  const getSubcommandCompletions = createCompletionFactory(commands);
+
   pi.registerCommand('worktree', {
     description: 'Git worktree management for isolated workspaces',
+    getArgumentCompletions(argumentPrefix) {
+      return getSubcommandCompletions(argumentPrefix);
+    },
     handler: async (args, ctx) => {
       const [cmd, ...rest] = args.trim().split(/\s+/);
       const command = commands[cmd];
