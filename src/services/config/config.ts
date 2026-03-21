@@ -24,6 +24,27 @@ const DEFAULT_ONCREATE_CMD_DISPLAY_PENDING_COLOR = 'dim';
 const DEFAULT_ONCREATE_CMD_DISPLAY_SUCCESS_COLOR = 'success';
 const DEFAULT_ONCREATE_CMD_DISPLAY_ERROR_COLOR = 'error';
 
+function normalizeConfiguredWorktrees(
+  configured: PiWorktreeConfig['worktrees']
+): Map<string, WorktreeSettingsConfig> {
+  const normalized: Record<string, WorktreeSettingsConfig> = {
+    '**': { ...DefaultWorktreeSettings },
+  };
+
+  for (const [pattern, settings] of Object.entries(configured || {})) {
+    if (pattern === '**') {
+      normalized['**'] = {
+        ...normalized['**'],
+        ...settings,
+      };
+      continue;
+    }
+
+    normalized[pattern] = settings;
+  }
+
+  return new Map(Object.entries(normalized));
+}
 export async function createPiWorktreeConfigService() {
   const parse = (value: unknown) => {
     return Parse(PiWorktreeConfigSchema, value);
@@ -89,7 +110,7 @@ export async function createPiWorktreeConfigService() {
     await store.save('home');
   };
 
-  const worktrees = new Map(Object.entries(store.config.worktrees || {}));
+  const worktrees = normalizeConfiguredWorktrees(store.config.worktrees);
 
   const current = (ctx: { cwd: string }) => {
     const repo = getRemoteUrl(ctx.cwd);
@@ -141,7 +162,7 @@ export async function createPiWorktreeConfigService() {
 
 export const DefaultWorktreeSettings: WorktreeSettingsConfig = {
   worktreeRoot: '{{mainWorktree}}.worktrees',
-  onCreate: 'cd {cwd}',
+  onCreate: 'echo "Created {{path}}"',
 };
 
 export const DefaultLogfileTemplate = DEFAULT_LOGFILE_TEMPLATE;

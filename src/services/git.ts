@@ -7,7 +7,7 @@ import {
   MatchingStrategy,
   WorktreeSettingsConfig,
 } from './config/schema.ts';
-import { DefaultWorktreeSettings, PiWorktreeConfiguredWorktreeMap } from './config/config.ts';
+import { PiWorktreeConfiguredWorktreeMap } from './config/config.ts';
 import { globMatch } from './glob.ts';
 
 export interface WorktreeInfo {
@@ -249,12 +249,6 @@ export type Result =
   | ({
       type: 'exact';
     } & MatchResult)
-  | ({
-      type: 'no-match';
-    } & MatchResult)
-  | ({
-      type: 'default';
-    } & MatchResult)
   | ({ type: 'tie-conflict' } & TieConflictError)
   | ({ type: 'first-wins' } & MatchResult)
   | ({ type: 'last-wins' } & MatchResult);
@@ -330,12 +324,8 @@ export function matchRepo(
   repos: PiWorktreeConfiguredWorktreeMap,
   matchStrategy?: MatchingStrategy
 ): Result {
-  if (!url || repos.size === 0) {
-    return {
-      settings: DefaultWorktreeSettings,
-      matchedPattern: null,
-      type: 'default',
-    };
+  if (!url) {
+    throw new Error('Cannot match repo: url is required');
   }
 
   const normalizedUrl = normalizeRepoReference(url);
@@ -362,11 +352,7 @@ export function matchRepo(
   }
 
   if (scoredMatches.length === 0) {
-    return {
-      settings: DefaultWorktreeSettings,
-      matchedPattern: null,
-      type: 'no-match',
-    };
+    throw new Error(`No matching worktree settings for repo: ${normalizedUrl}`);
   }
 
   scoredMatches.sort((left, right) => right.specificity - left.specificity);

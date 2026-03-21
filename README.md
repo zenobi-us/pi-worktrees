@@ -173,11 +173,12 @@ Settings live in `~/.pi/agent/pi-worktrees-settings.json`.
 ### Matching model
 
 For the current repository, settings are resolved in this order:
-
 1. Exact URL match in `worktrees`
 2. Most-specific glob match in `worktrees`
-3. Fallback to legacy `worktree`
+3. Normalized fallback pattern `"**"`
 
+At runtime, the extension normalizes the matcher input map to always include `worktrees["**"]`.
+If not explicitly configured, that fallback is seeded from built-in defaults (`worktreeRoot: "{{mainWorktree}}.worktrees"`, `onCreate: "echo \"Created {{path}}\""`).
 `matchingStrategy` controls ties between equally specific patterns:
 
 - `fail-on-tie` (default)

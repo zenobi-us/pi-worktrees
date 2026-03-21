@@ -76,7 +76,7 @@ describe('config service integration', () => {
     expect(result.settings.parentDir).toBe('/tmp/exact.worktrees');
   });
 
-  it('provides worktree settings that fall back to default when no pattern matches', async () => {
+  it('injects normalized fallback settings and resolves unmatched repo to "**"', async () => {
     store = createMockStore({
       worktrees: {
         'github.com/other/*': { parentDir: '/tmp/other.worktrees', onCreate: 'echo other' },
@@ -85,21 +85,25 @@ describe('config service integration', () => {
     });
 
     createConfigServiceMock.mockImplementation(async () => store);
-
     const service = await createPiWorktreeConfigService();
+    const fallback = service.worktrees.get('**');
+    expect(fallback).toEqual({
+      worktreeRoot: '{{mainWorktree}}.worktrees',
+      onCreate: 'echo "Created {{path}}"',
+    });
     const result = gitService.matchRepo(
       'https://github.com/org/repo',
       service.worktrees,
       store.config.matchingStrategy
     );
 
-    expect(result.type).toBe('no-match');
+    expect(result.type).toBe('exact');
     if (result.type === 'tie-conflict') {
       throw new Error('Expected non tie-conflict result');
     }
 
-    expect(result.matchedPattern).toBeNull();
-    expect(result.settings.onCreate).toBe('cd {cwd}');
+    expect(result.matchedPattern).toBe('**');
+    expect(result.settings.onCreate).toBe('echo "Created {{path}}"');
   });
 
   it('keeps onCreate values compatible with command-list normalization in command layer', async () => {
