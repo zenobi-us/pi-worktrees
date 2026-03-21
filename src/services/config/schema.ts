@@ -36,6 +36,12 @@ const MatchStrategyResultSchema = Union([Literal('exact'), Literal('unmatched')]
 const WorktreesMapSchema = TypeRecord(TypeString(), WorktreeSettingsSchema);
 const LogfileSchema = TypeString();
 const OnCreateDisplayOutputMaxLinesSchema = TypeInteger({ minimum: 0 });
+const OnCreateCmdDisplayPendingSchema = TypeString();
+const OnCreateCmdDisplaySuccessSchema = TypeString();
+const OnCreateCmdDisplayErrorSchema = TypeString();
+const OnCreateCmdDisplayPendingColorSchema = TypeString();
+const OnCreateCmdDisplaySuccessColorSchema = TypeString();
+const OnCreateCmdDisplayErrorColorSchema = TypeString();
 
 export const PiWorktreeConfigSchema = TypeObject(
   {
@@ -43,6 +49,12 @@ export const PiWorktreeConfigSchema = TypeObject(
     matchingStrategy: Optional(MatchingStrategySchema),
     logfile: Optional(LogfileSchema),
     onCreateDisplayOutputMaxLines: Optional(OnCreateDisplayOutputMaxLinesSchema),
+    onCreateCmdDisplayPending: Optional(OnCreateCmdDisplayPendingSchema),
+    onCreateCmdDisplaySuccess: Optional(OnCreateCmdDisplaySuccessSchema),
+    onCreateCmdDisplayError: Optional(OnCreateCmdDisplayErrorSchema),
+    onCreateCmdDisplayPendingColor: Optional(OnCreateCmdDisplayPendingColorSchema),
+    onCreateCmdDisplaySuccessColor: Optional(OnCreateCmdDisplaySuccessColorSchema),
+    onCreateCmdDisplayErrorColor: Optional(OnCreateCmdDisplayErrorColorSchema),
   },
   {
     $id: 'UnresolvedConfig',

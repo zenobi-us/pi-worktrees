@@ -154,6 +154,12 @@ describe('config service integration', () => {
         '**': { onCreate: 'echo setup' },
       },
       onCreateDisplayOutputMaxLines: 12,
+      onCreateCmdDisplayPending: '⏳ {{cmd}}',
+      onCreateCmdDisplaySuccess: '✅ {{cmd}}',
+      onCreateCmdDisplayError: '❌ {{cmd}}',
+      onCreateCmdDisplayPendingColor: 'accent',
+      onCreateCmdDisplaySuccessColor: 'success',
+      onCreateCmdDisplayErrorColor: 'error',
     });
 
     createConfigServiceMock.mockImplementation(async () => store);
@@ -161,5 +167,17 @@ describe('config service integration', () => {
     const serviceWithCustom = await createPiWorktreeConfigService();
     const customCurrent = serviceWithCustom.current({ cwd: '/tmp/repo' });
     expect(customCurrent.onCreateDisplayOutputMaxLines).toBe(12);
+    expect(customCurrent.onCreateCmdDisplayPending).toBe('⏳ {{cmd}}');
+    expect(customCurrent.onCreateCmdDisplaySuccess).toBe('✅ {{cmd}}');
+    expect(customCurrent.onCreateCmdDisplayError).toBe('❌ {{cmd}}');
+    expect(customCurrent.onCreateCmdDisplayPendingColor).toBe('accent');
+    expect(customCurrent.onCreateCmdDisplaySuccessColor).toBe('success');
+    expect(customCurrent.onCreateCmdDisplayErrorColor).toBe('error');
+    expect(defaultCurrent.onCreateCmdDisplayPending).toBe('[ ] {{cmd}}');
+    expect(defaultCurrent.onCreateCmdDisplaySuccess).toBe('[x] {{cmd}}');
+    expect(defaultCurrent.onCreateCmdDisplayError).toBe('[ ] {{cmd}} [ERROR]');
+    expect(defaultCurrent.onCreateCmdDisplayPendingColor).toBe('dim');
+    expect(defaultCurrent.onCreateCmdDisplaySuccessColor).toBe('success');
+    expect(defaultCurrent.onCreateCmdDisplayErrorColor).toBe('error');
   });
 });

@@ -47,6 +47,12 @@ Configuration (~/.pi/agent/pi-worktrees-settings.json):
     "matchingStrategy": "fail-on-tie",
     "logfile": "/tmp/pi-worktree-{sessionId}-{name}.log",
     "onCreateDisplayOutputMaxLines": 5,
+    "onCreateCmdDisplayPending": "[ ] {{cmd}}",
+    "onCreateCmdDisplaySuccess": "[x] {{cmd}}",
+    "onCreateCmdDisplayError": "[ ] {{cmd}} [ERROR]",
+    "onCreateCmdDisplayPendingColor": "dim",
+    "onCreateCmdDisplaySuccessColor": "success",
+    "onCreateCmdDisplayErrorColor": "error",
     "worktree": {
       "worktreeRoot": "~/.worktrees/{{project}}",
       "onCreate": "mise setup"

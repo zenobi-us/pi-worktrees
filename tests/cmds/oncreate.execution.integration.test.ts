@@ -80,12 +80,10 @@ describe('runOnCreateHook execution integration', () => {
 
     const notifiedText = notify.mock.calls.map(([msg]) => String(msg)).join('\n');
     expect(notifiedText).toContain('onCreate steps:');
-    expect(notifiedText).toContain('○ [01] echo feature-x');
-    expect(notifiedText).toContain('🚧 [01] echo feature-x');
-    expect(notifiedText).toContain('✅ [01] echo feature-x');
-    expect(notifiedText).toContain('○ [02] echo feature/feature-x');
-    expect(notifiedText).toContain('🚧 [02] echo feature/feature-x');
-    expect(notifiedText).toContain('✅ [02] echo feature/feature-x');
+    expect(notifiedText).toContain('[ ] echo feature-x');
+    expect(notifiedText).toContain('[x] echo feature-x');
+    expect(notifiedText).toContain('[ ] echo feature/feature-x');
+    expect(notifiedText).toContain('[x] echo feature/feature-x');
   });
 
   it('stops execution at first command failure', async () => {
@@ -111,10 +109,10 @@ describe('runOnCreateHook execution integration', () => {
     expect(spawnMock).toHaveBeenCalledTimes(2);
 
     const notifiedText = notify.mock.calls.map(([msg]) => String(msg)).join('\n');
-    expect(notifiedText).toContain('❌ [02] echo second');
+    expect(notifiedText).toContain('[ ] echo second [ERROR]');
     expect(notifiedText).toContain('onCreate failed (exit 12): second failed hard');
-    expect(notifiedText).not.toContain('🚧 [03] echo third');
-    expect(notifiedText).not.toContain('✅ [03] echo third');
+    expect(notifiedText).not.toContain('[x] echo third');
+    expect(notifiedText).not.toContain('[ ] echo third [ERROR]');
   });
 
   it('shows only the latest configured stdout/stderr lines without truncating logfile output', async () => {
@@ -156,5 +154,28 @@ describe('runOnCreateHook execution integration', () => {
     expect(logContent).toContain('err-1');
     expect(logContent).toContain('err-2');
     expect(logContent).toContain('err-3');
+  });
+
+  it('applies custom command display templates and color names', async () => {
+    createSpawnResultQueue([{ code: 0, stdout: 'ok' }]);
+
+    const settings: WorktreeSettingsConfig = {
+      onCreate: ['echo custom-template'],
+    };
+
+    const result = await runOnCreateHook(createdCtx, settings, notify, {
+      cmdDisplayPending: '⏳ {{cmd}}',
+      cmdDisplaySuccess: '✅ {{cmd}}',
+      cmdDisplayError: '❌ {{cmd}}',
+      cmdDisplayPendingColor: 'accent',
+      cmdDisplaySuccessColor: 'success',
+      cmdDisplayErrorColor: 'error',
+    });
+
+    expect(result.success).toBe(true);
+
+    const notifiedText = notify.mock.calls.map(([msg]) => String(msg)).join('\n');
+    expect(notifiedText).toContain('⏳ echo custom-template');
+    expect(notifiedText).toContain('✅ echo custom-template');
   });
 });

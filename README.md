@@ -142,6 +142,12 @@ Settings live in `~/.pi/agent/pi-worktrees-settings.json`.
   },
   "matchingStrategy": "fail-on-tie",
   "onCreateDisplayOutputMaxLines": 5,
+  "onCreateCmdDisplayPending": "[ ] {{cmd}}",
+  "onCreateCmdDisplaySuccess": "[x] {{cmd}}",
+  "onCreateCmdDisplayError": "[ ] {{cmd}} [ERROR]",
+  "onCreateCmdDisplayPendingColor": "dim",
+  "onCreateCmdDisplaySuccessColor": "success",
+  "onCreateCmdDisplayErrorColor": "error",
   "worktree": {
     "worktreeRoot": "~/.local/share/worktrees/{{project}}",
     "onCreate": "mise setup"
@@ -156,6 +162,12 @@ Settings live in `~/.pi/agent/pi-worktrees-settings.json`.
 | `worktrees` | `Record<string, WorktreeSettings>` | `{}` | Pattern-matched settings by repo URL or glob. |
 | `matchingStrategy` | `'fail-on-tie' \| 'first-wins' \| 'last-wins'` | `fail-on-tie` | Tie-break behavior for equally specific patterns. |
 | `onCreateDisplayOutputMaxLines` | `number` (integer, `>= 0`) | `5` | Number of latest stdout/stderr lines shown in live UI updates during `onCreate`. |
+| `onCreateCmdDisplayPending` | `string` | `[ ] {{cmd}}` | Template for pending/running command display lines. |
+| `onCreateCmdDisplaySuccess` | `string` | `[x] {{cmd}}` | Template for successful command display lines. |
+| `onCreateCmdDisplayError` | `string` | `[ ] {{cmd}} [ERROR]` | Template for failed command display lines. |
+| `onCreateCmdDisplayPendingColor` | `string` | `dim` | Pi theme color name for pending/running command lines. |
+| `onCreateCmdDisplaySuccessColor` | `string` | `success` | Pi theme color name for successful command lines. |
+| `onCreateCmdDisplayErrorColor` | `string` | `error` | Pi theme color name for failed command lines. |
 | `worktree` (legacy) | `WorktreeSettings` | n/a | Legacy fallback shape; migrated automatically. |
 
 ### Matching model
@@ -187,6 +199,28 @@ Controls only live UI output verbosity for `onCreate` command execution.
 - **Default**: `5`
 - **Scope**: display only
 - **Does not affect**: logfile contents (full stdout/stderr is still logged)
+
+### `onCreate` command line display templates
+
+These templates control how each command line is rendered in the live progress list.
+
+- `onCreateCmdDisplayPending` (default: `[ ] {{cmd}}`)
+- `onCreateCmdDisplaySuccess` (default: `[x] {{cmd}}`)
+- `onCreateCmdDisplayError` (default: `[ ] {{cmd}} [ERROR]`)
+
+Supported token:
+- `{{cmd}}` (or `{cmd}`) → expanded command string
+
+### `onCreate` command line display colors
+
+These settings use Pi theme color names:
+
+- `onCreateCmdDisplayPendingColor` (default: `dim`)
+- `onCreateCmdDisplaySuccessColor` (default: `success`)
+- `onCreateCmdDisplayErrorColor` (default: `error`)
+
+Supported color names in this extension: `dim`, `accent`, `info`, `success`, `warning`, `error`.
+
 ### `worktreeRoot`
 
 Where new worktrees are created.

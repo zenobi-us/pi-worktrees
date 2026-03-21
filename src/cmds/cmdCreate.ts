@@ -83,5 +83,11 @@ export async function cmdCreate(
   await runOnCreateHook(createdCtx, current, ctx.ui.notify.bind(ctx.ui), {
     logPath,
     displayOutputMaxLines: current.onCreateDisplayOutputMaxLines,
+    cmdDisplayPending: current.onCreateCmdDisplayPending,
+    cmdDisplaySuccess: current.onCreateCmdDisplaySuccess,
+    cmdDisplayError: current.onCreateCmdDisplayError,
+    cmdDisplayPendingColor: current.onCreateCmdDisplayPendingColor,
+    cmdDisplaySuccessColor: current.onCreateCmdDisplaySuccessColor,
+    cmdDisplayErrorColor: current.onCreateCmdDisplayErrorColor,
   });
 }
