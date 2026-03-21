@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/zenobi-us/pi-worktrees/compare/v0.2.0...v0.3.0) (2026-03-21)
+
+
+### Features
+
+* **config:** add onCreate display output max lines (no-ticket) ([#6](https://github.com/zenobi-us/pi-worktrees/issues/6)) ([ec24c8f](https://github.com/zenobi-us/pi-worktrees/commit/ec24c8fb4b23cdde637d69e2151a5ace4892589e))
+
 ## [0.2.0](https://github.com/zenobi-us/pi-worktrees/compare/v0.1.0...v0.2.0) (2026-03-20)
 
 
