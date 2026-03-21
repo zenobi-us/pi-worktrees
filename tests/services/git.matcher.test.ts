@@ -24,6 +24,23 @@ describe('matchRepo normalization and strategy behavior', () => {
     expect(sshResult.matchedPattern).toBe('github.com/org/repo');
   });
 
+  it('maps null remote urls to wildcard fallback pattern', () => {
+    const repos = makeRepos([
+      ['github.com/org/repo', { parentDir: '/tmp/exact' }],
+      ['**', { parentDir: '/tmp/fallback' }],
+    ]);
+
+    const result = matchRepo(null, repos);
+
+    expect(result.type).toBe('exact');
+    if (result.type === 'tie-conflict') {
+      throw new Error('Expected fallback exact match result');
+    }
+
+    expect(result.matchedPattern).toBe('**');
+    expect(result.settings.parentDir).toBe('/tmp/fallback');
+  });
+
   it('uses segment-based specificity for glob ranking', () => {
     const repos = makeRepos([
       ['github.com/org/*/*', { parentDir: '/tmp/less-specific' }],

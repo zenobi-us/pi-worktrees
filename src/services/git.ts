@@ -167,11 +167,8 @@ export function getWorktreeParentDir(
   const mainWorktree = getMainWorktreePath(cwd);
   const repo = getRemoteUrl(cwd);
 
-  if (!repo) {
-    throw new Error('Not a git repo');
-  }
-
-  const worktree = matchRepo(repo, repos, matchStrategy);
+  const repoReference = repo && repo.trim().length > 0 ? repo : '**';
+  const worktree = matchRepo(repoReference, repos, matchStrategy);
 
   if (worktree.type === 'tie-conflict') {
     throw new Error(worktree.message);
@@ -324,11 +321,8 @@ export function matchRepo(
   repos: PiWorktreeConfiguredWorktreeMap,
   matchStrategy?: MatchingStrategy
 ): Result {
-  if (!url) {
-    throw new Error('Cannot match repo: url is required');
-  }
-
-  const normalizedUrl = normalizeRepoReference(url);
+  const repoReference = url && url.trim().length > 0 ? url : '**';
+  const normalizedUrl = normalizeRepoReference(repoReference);
   const scoredMatches: ScoredMatch[] = [];
 
   for (const [pattern, settings] of repos.entries()) {
