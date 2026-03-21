@@ -1,4 +1,7 @@
 import { EventEmitter } from 'events';
+import { mkdtempSync, readFileSync } from 'fs';
+import { tmpdir } from 'os';
+import { join } from 'path';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { WorktreeSettingsConfig } from '../../src/services/config/schema.ts';
 
@@ -112,5 +115,46 @@ describe('runOnCreateHook execution integration', () => {
     expect(notifiedText).toContain('onCreate failed (exit 12): second failed hard');
     expect(notifiedText).not.toContain('🚧 [03] echo third');
     expect(notifiedText).not.toContain('✅ [03] echo third');
+  });
+
+  it('shows only the latest configured stdout/stderr lines without truncating logfile output', async () => {
+    createSpawnResultQueue([
+      {
+        code: 0,
+        stdout: 'line-1\nline-2\nline-3\nline-4\n',
+        stderr: 'err-1\nerr-2\nerr-3\n',
+      },
+    ]);
+
+    const settings: WorktreeSettingsConfig = {
+      onCreate: ['echo with-many-lines'],
+    };
+
+    const logDir = mkdtempSync(join(tmpdir(), 'pi-worktree-test-'));
+    const logPath = join(logDir, 'oncreate.log');
+
+    const result = await runOnCreateHook(createdCtx, settings, notify, {
+      logPath,
+      displayOutputMaxLines: 2,
+    });
+
+    expect(result.success).toBe(true);
+
+    const notifiedText = notify.mock.calls.map(([msg]) => String(msg)).join('\n');
+    expect(notifiedText).toContain('› line-4');
+    expect(notifiedText).toContain('› line-3');
+    expect(notifiedText).toContain('⚠ err-3');
+    expect(notifiedText).toContain('⚠ err-2');
+    expect(notifiedText).not.toContain('› line-1');
+    expect(notifiedText).not.toContain('⚠ err-1');
+
+    const logContent = readFileSync(logPath, 'utf8');
+    expect(logContent).toContain('line-1');
+    expect(logContent).toContain('line-2');
+    expect(logContent).toContain('line-3');
+    expect(logContent).toContain('line-4');
+    expect(logContent).toContain('err-1');
+    expect(logContent).toContain('err-2');
+    expect(logContent).toContain('err-3');
   });
 });

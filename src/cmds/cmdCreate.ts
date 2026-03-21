@@ -80,5 +80,8 @@ export async function cmdCreate(
     timestamp,
   });
 
-  await runOnCreateHook(createdCtx, current, ctx.ui.notify.bind(ctx.ui), { logPath });
+  await runOnCreateHook(createdCtx, current, ctx.ui.notify.bind(ctx.ui), {
+    logPath,
+    displayOutputMaxLines: current.onCreateDisplayOutputMaxLines,
+  });
 }

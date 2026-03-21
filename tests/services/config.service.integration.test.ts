@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { matchRepo } from '../../src/services/git.ts';
+import * as gitService from '../../src/services/git.ts';
 import type { PiWorktreeConfig } from '../../src/services/config/schema.ts';
 
 import { createPiWorktreeConfigService } from '../../src/services/config/config.ts';
@@ -42,6 +42,10 @@ beforeEach(() => {
   createConfigServiceMock.mockImplementation(async () => {
     return store;
   });
+  vi.spyOn(gitService, 'getRemoteUrl').mockReturnValue('https://github.com/org/repo');
+  vi.spyOn(gitService, 'getProjectName').mockReturnValue('repo');
+  vi.spyOn(gitService, 'getMainWorktreePath').mockReturnValue('/tmp/repo');
+  vi.spyOn(gitService, 'getWorktreeParentDir').mockReturnValue('/tmp/repo.worktrees');
 });
 
 describe('config service integration', () => {
@@ -57,7 +61,7 @@ describe('config service integration', () => {
     createConfigServiceMock.mockImplementation(async () => store);
 
     const service = await createPiWorktreeConfigService();
-    const result = matchRepo(
+    const result = gitService.matchRepo(
       'https://github.com/org/repo',
       service.worktrees,
       store.config.matchingStrategy
@@ -83,7 +87,7 @@ describe('config service integration', () => {
     createConfigServiceMock.mockImplementation(async () => store);
 
     const service = await createPiWorktreeConfigService();
-    const result = matchRepo(
+    const result = gitService.matchRepo(
       'https://github.com/org/repo',
       service.worktrees,
       store.config.matchingStrategy
@@ -130,5 +134,32 @@ describe('config service integration', () => {
     const serviceB = await createPiWorktreeConfigService();
     const settingsB = serviceB.worktrees.get('github.com/org/repo');
     expect(toList(settingsB?.onCreate)).toEqual(['echo one', 'echo two']);
+  });
+
+  it('exposes onCreate output display line limit with default fallback', async () => {
+    store = createMockStore({
+      worktrees: {
+        '**': { onCreate: 'echo setup' },
+      },
+    });
+
+    createConfigServiceMock.mockImplementation(async () => store);
+
+    const serviceWithDefault = await createPiWorktreeConfigService();
+    const defaultCurrent = serviceWithDefault.current({ cwd: '/tmp/repo' });
+    expect(defaultCurrent.onCreateDisplayOutputMaxLines).toBe(5);
+
+    store = createMockStore({
+      worktrees: {
+        '**': { onCreate: 'echo setup' },
+      },
+      onCreateDisplayOutputMaxLines: 12,
+    });
+
+    createConfigServiceMock.mockImplementation(async () => store);
+
+    const serviceWithCustom = await createPiWorktreeConfigService();
+    const customCurrent = serviceWithCustom.current({ cwd: '/tmp/repo' });
+    expect(customCurrent.onCreateDisplayOutputMaxLines).toBe(12);
   });
 });

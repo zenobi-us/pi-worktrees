@@ -46,6 +46,7 @@ Configuration (~/.pi/agent/pi-worktrees-settings.json):
     },
     "matchingStrategy": "fail-on-tie",
     "logfile": "/tmp/pi-worktree-{sessionId}-{name}.log",
+    "onCreateDisplayOutputMaxLines": 5,
     "worktree": {
       "worktreeRoot": "~/.worktrees/{{project}}",
       "onCreate": "mise setup"

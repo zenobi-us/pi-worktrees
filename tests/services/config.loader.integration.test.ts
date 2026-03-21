@@ -72,6 +72,7 @@ describe('config loader integration', () => {
         },
       },
       logfile: '/tmp/pi-worktree-{sessionId}-{name}.log',
+      onCreateDisplayOutputMaxLines: 5,
     });
 
     const parsedArray = parse?.({
@@ -82,6 +83,7 @@ describe('config loader integration', () => {
         },
       },
       logfile: '/tmp/pi-worktree-{sessionId}-{name}-{timestamp}.log',
+      onCreateDisplayOutputMaxLines: 7,
     });
 
     expect(parsedString).toEqual({
@@ -92,6 +94,7 @@ describe('config loader integration', () => {
         },
       },
       logfile: '/tmp/pi-worktree-{sessionId}-{name}.log',
+      onCreateDisplayOutputMaxLines: 5,
     });
 
     expect(parsedArray).toEqual({
@@ -102,6 +105,7 @@ describe('config loader integration', () => {
         },
       },
       logfile: '/tmp/pi-worktree-{sessionId}-{name}-{timestamp}.log',
+      onCreateDisplayOutputMaxLines: 7,
     });
   });
 
@@ -142,6 +146,7 @@ describe('config loader integration', () => {
       worktrees,
       matchingStrategy: 'fail-on-tie',
       logfile: '/tmp/custom-worktree-{sessionId}.log',
+      onCreateDisplayOutputMaxLines: 8,
     });
 
     createConfigServiceMock.mockReset();
@@ -160,6 +165,7 @@ describe('config loader integration', () => {
       worktrees,
       matchingStrategy: 'last-wins',
       logfile: '/tmp/custom-worktree-{sessionId}.log',
+      onCreateDisplayOutputMaxLines: 8,
     });
 
     expect(store.set).toHaveBeenNthCalledWith(1, 'worktrees', worktrees, 'home');
@@ -170,15 +176,18 @@ describe('config loader integration', () => {
       '/tmp/custom-worktree-{sessionId}.log',
       'home'
     );
+    expect(store.set).toHaveBeenNthCalledWith(4, 'onCreateDisplayOutputMaxLines', 8, 'home');
     expect(store.save).toHaveBeenCalledWith('home');
 
     expect(store.config.worktrees).toEqual(worktrees);
     expect(store.config.matchingStrategy).toBe('last-wins');
     expect(store.config.logfile).toBe('/tmp/custom-worktree-{sessionId}.log');
+    expect(store.config.onCreateDisplayOutputMaxLines).toBe(8);
     expect((capturedOptions?.parse as ParseConfigFn | undefined)?.(store.config)).toEqual({
       worktrees,
       matchingStrategy: 'last-wins',
       logfile: '/tmp/custom-worktree-{sessionId}.log',
+      onCreateDisplayOutputMaxLines: 8,
     });
   });
 });

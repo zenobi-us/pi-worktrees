@@ -7,6 +7,7 @@ import {
   Static,
   String as TypeString,
   Union,
+  Integer as TypeInteger,
 } from 'typebox';
 
 const OnCreateSchema = Union([TypeString(), TypeArray(TypeString())]);
@@ -34,12 +35,14 @@ const MatchStrategyResultSchema = Union([Literal('exact'), Literal('unmatched')]
 
 const WorktreesMapSchema = TypeRecord(TypeString(), WorktreeSettingsSchema);
 const LogfileSchema = TypeString();
+const OnCreateDisplayOutputMaxLinesSchema = TypeInteger({ minimum: 0 });
 
 export const PiWorktreeConfigSchema = TypeObject(
   {
     worktrees: Optional(WorktreesMapSchema),
     matchingStrategy: Optional(MatchingStrategySchema),
     logfile: Optional(LogfileSchema),
+    onCreateDisplayOutputMaxLines: Optional(OnCreateDisplayOutputMaxLinesSchema),
   },
   {
     $id: 'UnresolvedConfig',

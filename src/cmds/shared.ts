@@ -30,6 +30,7 @@ type CommandState = 'pending' | 'running' | 'success' | 'failed';
 
 export interface OnCreateHookOptions {
   logPath?: string;
+  displayOutputMaxLines?: number;
 }
 
 const ANSI = {
@@ -76,11 +77,21 @@ function formatOutputLine(stream: 'stdout' | 'stderr', line: string, state: Comm
   return `${ANSI.gray}   ${prefix} ${line}${ANSI.reset}`;
 }
 
+function getDisplayLines(text: string, maxLines: number): string[] {
+  const lines = toLines(text);
+  if (maxLines < 0) {
+    return lines;
+  }
+
+  return lines.slice(-maxLines);
+}
+
 function formatCommandList(
   commands: string[],
   states: CommandState[],
   outputs: CommandOutput[],
-  logPath?: string
+  logPath?: string,
+  displayOutputMaxLines = 5
 ): string {
   const lines: string[] = ['onCreate steps:'];
 
@@ -88,11 +99,11 @@ function formatCommandList(
     const state = states[index];
     lines.push(formatCommandLine(index, command, state));
 
-    for (const line of toLines(outputs[index].stdout)) {
+    for (const line of getDisplayLines(outputs[index].stdout, displayOutputMaxLines)) {
       lines.push(formatOutputLine('stdout', line, state));
     }
 
-    for (const line of toLines(outputs[index].stderr)) {
+    for (const line of getDisplayLines(outputs[index].stderr, displayOutputMaxLines)) {
       lines.push(formatOutputLine('stderr', line, state));
     }
   }
@@ -208,15 +219,32 @@ export async function runOnCreateHook(
     );
   }
 
-  notify(formatCommandList(commands, commandStates, commandOutputs), 'info');
+  const displayOutputMaxLines = options?.displayOutputMaxLines ?? 5;
+
+  notify(
+    formatCommandList(commands, commandStates, commandOutputs, undefined, displayOutputMaxLines),
+    'info'
+  );
 
   for (const [index, command] of commands.entries()) {
     commandStates[index] = 'running';
-    notify(formatCommandList(commands, commandStates, commandOutputs), 'info');
+    notify(
+      formatCommandList(commands, commandStates, commandOutputs, undefined, displayOutputMaxLines),
+      'info'
+    );
 
     const result = await runCommand(command, createdCtx.path, (stream, chunk) => {
       commandOutputs[index][stream] += chunk;
-      notify(formatCommandList(commands, commandStates, commandOutputs), 'info');
+      notify(
+        formatCommandList(
+          commands,
+          commandStates,
+          commandOutputs,
+          undefined,
+          displayOutputMaxLines
+        ),
+        'info'
+      );
     });
 
     if (options?.logPath) {
@@ -227,7 +255,16 @@ export async function runOnCreateHook(
 
     if (!result.success) {
       commandStates[index] = 'failed';
-      notify(formatCommandList(commands, commandStates, commandOutputs, options?.logPath), 'error');
+      notify(
+        formatCommandList(
+          commands,
+          commandStates,
+          commandOutputs,
+          options?.logPath,
+          displayOutputMaxLines
+        ),
+        'error'
+      );
       notify(
         `onCreate failed (exit ${result.code}): ${result.stderr.slice(0, 200)}${
           options?.logPath ? `\nlog: ${options.logPath}` : ''
@@ -246,10 +283,22 @@ export async function runOnCreateHook(
     }
 
     commandStates[index] = 'success';
-    notify(formatCommandList(commands, commandStates, commandOutputs), 'info');
+    notify(
+      formatCommandList(commands, commandStates, commandOutputs, undefined, displayOutputMaxLines),
+      'info'
+    );
   }
 
-  notify(formatCommandList(commands, commandStates, commandOutputs, options?.logPath), 'info');
+  notify(
+    formatCommandList(
+      commands,
+      commandStates,
+      commandOutputs,
+      options?.logPath,
+      displayOutputMaxLines
+    ),
+    'info'
+  );
 
   return { success: true, executed };
 }

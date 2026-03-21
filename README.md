@@ -44,6 +44,28 @@ If Pi is already running, use `/reload` to load newly installed extensions.
 
 ---
 
+## Getting started in 2 minutes
+
+1. Install the extension:
+
+```bash
+pi install npm:@zenobius/pi-worktrees
+```
+
+2. Open a git repo in Pi and run:
+
+```text
+/worktree init
+/worktree create auth-refactor
+/worktree list
+```
+
+3. Optional: jump into it from your shell using the printed path:
+
+```text
+/worktree cd auth-refactor
+```
+
 ## Quick start
 
 In Pi:
@@ -58,11 +80,9 @@ In Pi:
 /worktree prune
 ```
 
-### How I use `/worktrees`
+### Example: How I use `/worktree`
 
-Since I use nvim and zellij, i want the worktrees I create to be clones of the workspace
-I have for the current one, so to this end, my `onCreate` looks like: 
-
+I use Neovim and Zellij, and I want each new worktree to boot a ready-to-code workspace. My `onCreate` looks like:
 ```json
 {
   "worktrees": {
@@ -78,12 +98,9 @@ I have for the current one, so to this end, my `onCreate` looks like:
     }
   }
 }
-
 ```
 
-This means when ever i create a new worktree, it creates a new zellij tab with nvim and pi running
-in it on the new worktree path.
-
+This creates a new Zellij tab with Neovim and Pi running in the new worktree path.
 ---
 
 ## Command reference
@@ -92,7 +109,7 @@ in it on the new worktree path.
 |---|---|
 | `/worktree init` | Interactive setup for extension settings |
 | `/worktree settings` | Show all current settings |
-| `/worktree settings <key>` | Get one setting (`worktreeRoot`, `onCreate`) |
+| `/worktree settings <key>` | Get one setting (`worktreeRoot`, `parentDir` alias, `onCreate`) |
 | `/worktree settings <key> <value>` | Set one setting |
 | `/worktree create <feature-name>` | Create a new worktree + branch `feature/<feature-name>` |
 | `/worktree list` | List all worktrees (`/worktree ls` alias) |
@@ -121,12 +138,22 @@ Settings live in `~/.pi/agent/pi-worktrees-settings.json`.
     }
   },
   "matchingStrategy": "fail-on-tie",
+  "onCreateDisplayOutputMaxLines": 5,
   "worktree": {
     "worktreeRoot": "~/.local/share/worktrees/{{project}}",
     "onCreate": "mise setup"
   }
 }
 ```
+
+### Configuration reference
+
+| Key | Type | Default | Description |
+|---|---|---|---|
+| `worktrees` | `Record<string, WorktreeSettings>` | `{}` | Pattern-matched settings by repo URL or glob. |
+| `matchingStrategy` | `'fail-on-tie' \| 'first-wins' \| 'last-wins'` | `fail-on-tie` | Tie-break behavior for equally specific patterns. |
+| `onCreateDisplayOutputMaxLines` | `number` (integer, `>= 0`) | `5` | Number of latest stdout/stderr lines shown in live UI updates during `onCreate`. |
+| `worktree` (legacy) | `WorktreeSettings` | n/a | Legacy fallback shape; migrated automatically. |
 
 ### Matching model
 
@@ -151,6 +178,12 @@ For the current repository, settings are resolved in this order:
 
 When an array is used, commands run sequentially and stop on first failure.
 
+### `onCreateDisplayOutputMaxLines`
+
+Controls only live UI output verbosity for `onCreate` command execution.
+- **Default**: `5`
+- **Scope**: display only
+- **Does not affect**: logfile contents (full stdout/stderr is still logged)
 ### `worktreeRoot`
 
 Where new worktrees are created.
