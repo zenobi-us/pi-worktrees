@@ -30,14 +30,16 @@
   ],
   "pi": {
     "extensions": [
-      "./dist/index.js"
+      "./src/index.ts"
     ]
   },
   "dependencies": {
-    "@mariozechner/pi-coding-agent": "~0.52.9",
-    "@mariozechner/pi-tui": "~0.52.9",
     "@zenobius/pi-extension-config": "^0.2.0",
     "typebox": "^1.0.81"
+  },
+  "peerDependencies": {
+    "@mariozechner/pi-coding-agent": "*",
+    "@mariozechner/pi-tui": "*"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.2",
