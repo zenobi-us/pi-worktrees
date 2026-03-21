@@ -72,6 +72,13 @@ describe('config loader integration', () => {
         },
       },
       logfile: '/tmp/pi-worktree-{sessionId}-{name}.log',
+      onCreateDisplayOutputMaxLines: 5,
+      onCreateCmdDisplayPending: '[ ] {{cmd}}',
+      onCreateCmdDisplaySuccess: '[x] {{cmd}}',
+      onCreateCmdDisplayError: '[ ] {{cmd}} [ERROR]',
+      onCreateCmdDisplayPendingColor: 'dim',
+      onCreateCmdDisplaySuccessColor: 'success',
+      onCreateCmdDisplayErrorColor: 'error',
     });
 
     const parsedArray = parse?.({
@@ -82,6 +89,13 @@ describe('config loader integration', () => {
         },
       },
       logfile: '/tmp/pi-worktree-{sessionId}-{name}-{timestamp}.log',
+      onCreateDisplayOutputMaxLines: 7,
+      onCreateCmdDisplayPending: '⏳ {{cmd}}',
+      onCreateCmdDisplaySuccess: '✅ {{cmd}}',
+      onCreateCmdDisplayError: '❌ {{cmd}}',
+      onCreateCmdDisplayPendingColor: 'accent',
+      onCreateCmdDisplaySuccessColor: 'success',
+      onCreateCmdDisplayErrorColor: 'error',
     });
 
     expect(parsedString).toEqual({
@@ -92,6 +106,13 @@ describe('config loader integration', () => {
         },
       },
       logfile: '/tmp/pi-worktree-{sessionId}-{name}.log',
+      onCreateDisplayOutputMaxLines: 5,
+      onCreateCmdDisplayPending: '[ ] {{cmd}}',
+      onCreateCmdDisplaySuccess: '[x] {{cmd}}',
+      onCreateCmdDisplayError: '[ ] {{cmd}} [ERROR]',
+      onCreateCmdDisplayPendingColor: 'dim',
+      onCreateCmdDisplaySuccessColor: 'success',
+      onCreateCmdDisplayErrorColor: 'error',
     });
 
     expect(parsedArray).toEqual({
@@ -102,6 +123,13 @@ describe('config loader integration', () => {
         },
       },
       logfile: '/tmp/pi-worktree-{sessionId}-{name}-{timestamp}.log',
+      onCreateDisplayOutputMaxLines: 7,
+      onCreateCmdDisplayPending: '⏳ {{cmd}}',
+      onCreateCmdDisplaySuccess: '✅ {{cmd}}',
+      onCreateCmdDisplayError: '❌ {{cmd}}',
+      onCreateCmdDisplayPendingColor: 'accent',
+      onCreateCmdDisplaySuccessColor: 'success',
+      onCreateCmdDisplayErrorColor: 'error',
     });
   });
 
@@ -142,6 +170,13 @@ describe('config loader integration', () => {
       worktrees,
       matchingStrategy: 'fail-on-tie',
       logfile: '/tmp/custom-worktree-{sessionId}.log',
+      onCreateDisplayOutputMaxLines: 8,
+      onCreateCmdDisplayPending: 'pending {{cmd}}',
+      onCreateCmdDisplaySuccess: 'done {{cmd}}',
+      onCreateCmdDisplayError: 'boom {{cmd}}',
+      onCreateCmdDisplayPendingColor: 'dim',
+      onCreateCmdDisplaySuccessColor: 'success',
+      onCreateCmdDisplayErrorColor: 'error',
     });
 
     createConfigServiceMock.mockReset();
@@ -160,6 +195,13 @@ describe('config loader integration', () => {
       worktrees,
       matchingStrategy: 'last-wins',
       logfile: '/tmp/custom-worktree-{sessionId}.log',
+      onCreateDisplayOutputMaxLines: 8,
+      onCreateCmdDisplayPending: 'pending {{cmd}}',
+      onCreateCmdDisplaySuccess: 'done {{cmd}}',
+      onCreateCmdDisplayError: 'boom {{cmd}}',
+      onCreateCmdDisplayPendingColor: 'dim',
+      onCreateCmdDisplaySuccessColor: 'success',
+      onCreateCmdDisplayErrorColor: 'error',
     });
 
     expect(store.set).toHaveBeenNthCalledWith(1, 'worktrees', worktrees, 'home');
@@ -170,15 +212,51 @@ describe('config loader integration', () => {
       '/tmp/custom-worktree-{sessionId}.log',
       'home'
     );
+    expect(store.set).toHaveBeenNthCalledWith(4, 'onCreateDisplayOutputMaxLines', 8, 'home');
+    expect(store.set).toHaveBeenNthCalledWith(
+      5,
+      'onCreateCmdDisplayPending',
+      'pending {{cmd}}',
+      'home'
+    );
+    expect(store.set).toHaveBeenNthCalledWith(
+      6,
+      'onCreateCmdDisplaySuccess',
+      'done {{cmd}}',
+      'home'
+    );
+    expect(store.set).toHaveBeenNthCalledWith(7, 'onCreateCmdDisplayError', 'boom {{cmd}}', 'home');
+    expect(store.set).toHaveBeenNthCalledWith(8, 'onCreateCmdDisplayPendingColor', 'dim', 'home');
+    expect(store.set).toHaveBeenNthCalledWith(
+      9,
+      'onCreateCmdDisplaySuccessColor',
+      'success',
+      'home'
+    );
+    expect(store.set).toHaveBeenNthCalledWith(10, 'onCreateCmdDisplayErrorColor', 'error', 'home');
     expect(store.save).toHaveBeenCalledWith('home');
 
     expect(store.config.worktrees).toEqual(worktrees);
     expect(store.config.matchingStrategy).toBe('last-wins');
     expect(store.config.logfile).toBe('/tmp/custom-worktree-{sessionId}.log');
+    expect(store.config.onCreateDisplayOutputMaxLines).toBe(8);
+    expect(store.config.onCreateCmdDisplayPending).toBe('pending {{cmd}}');
+    expect(store.config.onCreateCmdDisplaySuccess).toBe('done {{cmd}}');
+    expect(store.config.onCreateCmdDisplayError).toBe('boom {{cmd}}');
+    expect(store.config.onCreateCmdDisplayPendingColor).toBe('dim');
+    expect(store.config.onCreateCmdDisplaySuccessColor).toBe('success');
+    expect(store.config.onCreateCmdDisplayErrorColor).toBe('error');
     expect((capturedOptions?.parse as ParseConfigFn | undefined)?.(store.config)).toEqual({
       worktrees,
       matchingStrategy: 'last-wins',
       logfile: '/tmp/custom-worktree-{sessionId}.log',
+      onCreateDisplayOutputMaxLines: 8,
+      onCreateCmdDisplayPending: 'pending {{cmd}}',
+      onCreateCmdDisplaySuccess: 'done {{cmd}}',
+      onCreateCmdDisplayError: 'boom {{cmd}}',
+      onCreateCmdDisplayPendingColor: 'dim',
+      onCreateCmdDisplaySuccessColor: 'success',
+      onCreateCmdDisplayErrorColor: 'error',
     });
   });
 });

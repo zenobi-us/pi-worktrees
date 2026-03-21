@@ -73,7 +73,7 @@ describe('cmdCreate resolution integration', () => {
     );
 
     const notifiedText = notify.mock.calls.map(([msg]) => String(msg)).join('\n');
-    expect(notifiedText).toContain('🚧 [01] echo exact');
+    expect(notifiedText).toContain('[ ] echo exact');
   });
 
   it('uses fallback pattern settings when no specific repo pattern matches', async () => {
@@ -93,6 +93,6 @@ describe('cmdCreate resolution integration', () => {
     );
 
     const notifiedText = notify.mock.calls.map(([msg]) => String(msg)).join('\n');
-    expect(notifiedText).toContain('🚧 [01] echo fallback');
+    expect(notifiedText).toContain('[ ] echo fallback');
   });
 });

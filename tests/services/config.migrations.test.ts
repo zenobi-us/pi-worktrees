@@ -4,18 +4,22 @@ import { runMigrations } from '@zenobius/pi-extension-config';
 import { migration as migration01 } from '../../src/services/config/migrations/01-flat-single.ts';
 import { migration as migration02 } from '../../src/services/config/migrations/02-worktree-to-worktrees.ts';
 import { migration as migration03 } from '../../src/services/config/migrations/03-parentDir-to-worktreeRoot.ts';
+import { migration as migration04 } from '../../src/services/config/migrations/04-oncreate-display-output-max-lines.ts';
+import { migration as migration05 } from '../../src/services/config/migrations/05-oncreate-command-display-format.ts';
 import { PiWorktreeConfigSchema } from '../../src/services/config/schema.ts';
 import { Parse } from 'typebox/value';
 import { matchRepo } from '../../src/services/git.ts';
 
 describe('config migration set', () => {
   it('is versioned and executable as an ordered migration set', async () => {
-    const migrations = [migration01, migration02, migration03];
+    const migrations = [migration01, migration02, migration03, migration04, migration05];
 
     expect(migrations.map((migration) => migration.id)).toEqual([
       'legacy-flat-worktree-settings',
       'legacy-worktree-to-worktrees',
       'parentDir-to-worktreeRoot',
+      'oncreate-display-output-max-lines-default',
+      'oncreate-command-display-format-defaults',
     ]);
 
     const preview = await runMigrations({
@@ -26,13 +30,13 @@ describe('config migration set', () => {
     });
 
     expect(preview.status).toBe('preview');
-    expect(preview.targetVersion).toBe(3);
-    expect(preview.finalVersion).toBe(3);
-    expect(preview.pendingCount).toBe(3);
+    expect(preview.targetVersion).toBe(5);
+    expect(preview.finalVersion).toBe(5);
+    expect(preview.pendingCount).toBe(5);
   });
 
   it('migrates legacy worktree shape to worktrees fallback pattern', async () => {
-    const migrations = [migration01, migration02, migration03];
+    const migrations = [migration01, migration02, migration03, migration04, migration05];
 
     const result = await runMigrations({
       config: {
@@ -48,7 +52,7 @@ describe('config migration set', () => {
     });
 
     expect(result.status).toBe('migrated');
-    expect(result.finalVersion).toBe(3);
+    expect(result.finalVersion).toBe(5);
     expect(result.config).toEqual({
       worktrees: {
         '**': {
@@ -57,11 +61,18 @@ describe('config migration set', () => {
         },
       },
       logfile: '/tmp/pi-worktree-{sessionId}-{name}-{timestamp}.log',
+      onCreateDisplayOutputMaxLines: 5,
+      onCreateCmdDisplayPending: '[ ] {{cmd}}',
+      onCreateCmdDisplaySuccess: '[x] {{cmd}}',
+      onCreateCmdDisplayError: '[ ] {{cmd}} [ERROR]',
+      onCreateCmdDisplayPendingColor: 'dim',
+      onCreateCmdDisplaySuccessColor: 'success',
+      onCreateCmdDisplayErrorColor: 'error',
     });
   });
 
   it('uses migrated worktrees fallback pattern for no-match resolution', async () => {
-    const migrations = [migration01, migration02, migration03];
+    const migrations = [migration01, migration02, migration03, migration04, migration05];
 
     const migrationResult = await runMigrations({
       config: {
@@ -90,7 +101,7 @@ describe('config migration set', () => {
   });
 
   it('merges legacy worktree fallback into existing worktrees map', async () => {
-    const migrations = [migration01, migration02, migration03];
+    const migrations = [migration01, migration02, migration03, migration04, migration05];
 
     const result = await runMigrations({
       config: {
@@ -122,11 +133,18 @@ describe('config migration set', () => {
           onCreate: 'echo legacy-fallback',
         },
       },
+      onCreateDisplayOutputMaxLines: 5,
+      onCreateCmdDisplayPending: '[ ] {{cmd}}',
+      onCreateCmdDisplaySuccess: '[x] {{cmd}}',
+      onCreateCmdDisplayError: '[ ] {{cmd}} [ERROR]',
+      onCreateCmdDisplayPendingColor: 'dim',
+      onCreateCmdDisplaySuccessColor: 'success',
+      onCreateCmdDisplayErrorColor: 'error',
     });
   });
 
   it('keeps migration behavior policy-driven through framework validation', async () => {
-    const migrations = [migration01, migration02, migration03];
+    const migrations = [migration01, migration02, migration03, migration04, migration05];
 
     const result = await runMigrations({
       config: {
@@ -148,6 +166,13 @@ describe('config migration set', () => {
           onCreate: ['cd {cwd}', 'git status'],
         },
       },
+      onCreateDisplayOutputMaxLines: 5,
+      onCreateCmdDisplayPending: '[ ] {{cmd}}',
+      onCreateCmdDisplaySuccess: '[x] {{cmd}}',
+      onCreateCmdDisplayError: '[ ] {{cmd}} [ERROR]',
+      onCreateCmdDisplayPendingColor: 'dim',
+      onCreateCmdDisplaySuccessColor: 'success',
+      onCreateCmdDisplayErrorColor: 'error',
     });
   });
 });
