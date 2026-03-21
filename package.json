@@ -30,7 +30,7 @@
   ],
   "pi": {
     "extensions": [
-      "./src/index.ts"
+      "./dist/index.js"
     ]
   },
   "dependencies": {
