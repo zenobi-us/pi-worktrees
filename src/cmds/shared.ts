@@ -131,9 +131,14 @@ function formatOutputLine(stream: 'stdout' | 'stderr', line: string, state: Comm
 function getDisplayLines(text: string, maxLines: number): string[] {
   const lines = toLines(text);
   if (maxLines < 0) {
+    // Negative values mean "no limit" – return all lines.
     return lines;
   }
 
+  if (maxLines === 0) {
+    // Explicitly requested no output.
+    return [];
+  }
   return lines.slice(-maxLines);
 }
 
