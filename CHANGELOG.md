@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.5.0](https://github.com/zenobi-us/pi-worktrees/compare/v0.4.0...v0.5.0) (2026-03-23)
+
+
+### Features
+
+* **memory/epic:** add cli-only decoupling epic e9f4a1c2 ([4ce0639](https://github.com/zenobi-us/pi-worktrees/commit/4ce0639d4e09ee8f40b6baf2f20ba2848ef50ea8))
+* **memory:** add epic for exposing subcommands as tools ([bcb9abc](https://github.com/zenobi-us/pi-worktrees/commit/bcb9abcaadf2d9bef5985c8eb064ba64724c22cc))
+* **memory:** begin story 91 definition with task breakdown ([b75d1a1](https://github.com/zenobi-us/pi-worktrees/commit/b75d1a1020f89b814cea6cf83d70ecdfa81b81df))
+* **memory:** define worktrees tool discovery backlog ([8c6489f](https://github.com/zenobi-us/pi-worktrees/commit/8c6489fe2b28a2c375131ec68965c3089f30cf87))
+* **memory:** start cli-only execution planning ([43126bc](https://github.com/zenobi-us/pi-worktrees/commit/43126bcfd25c8f9f2778a81b003c4361fad98361))
+
 ## [0.4.0](https://github.com/zenobi-us/pi-worktrees/compare/v0.3.0...v0.4.0) (2026-03-21)
 
 
