@@ -12,4 +12,5 @@
 - Completed framework research artifact for TypeScript CLI options (Bun/Node.js).
 - Framework decision accepted: `@effect/cli` on Bun due to TypeScript-first priority (see `decision-f6a2b1d9`).
 - Execution plan drafted: `plan-e9f4a1c2-cli-only-migration-execution.md`.
-- Next actions: run Phase A separation audit from execution plan and produce call-site inventory.
+- Phase A separation audit completed and documented in `research-c3f9a27e-cli-separation-audit-ui-dependencies.md`.
+- Next actions: define `ConsoleDisplayPrinter` contract and create mapping for `notify/select/confirm/input`.

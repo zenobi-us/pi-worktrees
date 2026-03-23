@@ -2,7 +2,7 @@
 id: e9f4a1c2
 title: Convert project to CLI-only and decouple from pi-mono
 created_at: 2026-03-23T18:20:43+10:30
-updated_at: 2026-03-23T19:13:02+10:30
+updated_at: 2026-03-23T19:25:11+10:30
 status: in-progress
 ---
 
@@ -18,7 +18,7 @@ Move this project to a CLI-only architecture with no dependency direction toward
 
 ## Scope / Discovery Items
 - [ ] **Scope item:** Replace `ui.notify` usage with a `ConsoleDisplayPrinter` service that can also support interactive prompts.
-- [ ] **Discovery item:** Validate and document how much of the current codebase is already separated from the pi coding agent internals.
+- [x] **Discovery item:** Validate and document how much of the current codebase is already separated from the pi coding agent internals.
 - [x] **Discovery item:** Research TypeScript CLI frameworks suitable for Bun and/or Node.js.
 
 ## Stories
@@ -33,11 +33,12 @@ Move this project to a CLI-only architecture with no dependency direction toward
 - **Start Criteria**: Epic approved
 - **End Criteria**: Separation audit complete, CLI framework research documented, migration direction selected
 - **Tasks**:
-  - [ ] Audit current code paths for `ui.notify` and adjacent interaction dependencies.
+  - [x] Audit current code paths for `ui.notify` and adjacent interaction dependencies ([research-c3f9a27e-cli-separation-audit-ui-dependencies](./research-c3f9a27e-cli-separation-audit-ui-dependencies.md)).
   - [x] Produce CLI framework research artifact for Bun/Node.js options.
   - [x] Draft migration constraints and recommended target architecture ([decision-f6a2b1d9-cli-framework-selection](./decision-f6a2b1d9-cli-framework-selection.md)).
 - **Notes**: Start with minimal disruption and preserve existing command semantics.
 - **Decision**: `@effect/cli` + `@effect/platform-bun` selected for TypeScript-first CLI migration.
+- **Audit evidence**: [research-c3f9a27e-cli-separation-audit-ui-dependencies](./research-c3f9a27e-cli-separation-audit-ui-dependencies.md).
 
 ### Phase 2: Interaction Layer Migration
 - **Status**: planned
