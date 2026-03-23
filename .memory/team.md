@@ -10,4 +10,5 @@
 - Loaded and followed superpowers + miniproject skills for memory workflow.
 - Created and activated a new epic for CLI-only migration and pi-mono decoupling.
 - Completed framework research artifact for TypeScript CLI options (Bun/Node.js).
-- Next actions: separation audit and `ConsoleDisplayPrinter` contract definition.
+- Framework decision accepted: `@effect/cli` on Bun due to TypeScript-first priority (see `decision-f6a2b1d9`).
+- Next actions: separation audit, then implementation spike for `@effect/cli` + `@effect/platform-bun` and `ConsoleDisplayPrinter` contract.
