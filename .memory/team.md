@@ -11,4 +11,5 @@
 - Created and activated a new epic for CLI-only migration and pi-mono decoupling.
 - Completed framework research artifact for TypeScript CLI options (Bun/Node.js).
 - Framework decision accepted: `@effect/cli` on Bun due to TypeScript-first priority (see `decision-f6a2b1d9`).
-- Next actions: separation audit, then implementation spike for `@effect/cli` + `@effect/platform-bun` and `ConsoleDisplayPrinter` contract.
+- Execution plan drafted: `plan-e9f4a1c2-cli-only-migration-execution.md`.
+- Next actions: run Phase A separation audit from execution plan and produce call-site inventory.

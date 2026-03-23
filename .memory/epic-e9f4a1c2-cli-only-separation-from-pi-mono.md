@@ -2,7 +2,7 @@
 id: e9f4a1c2
 title: Convert project to CLI-only and decouple from pi-mono
 created_at: 2026-03-23T18:20:43+10:30
-updated_at: 2026-03-23T19:03:27+10:30
+updated_at: 2026-03-23T19:13:02+10:30
 status: in-progress
 ---
 
@@ -59,3 +59,4 @@ Move this project to a CLI-only architecture with no dependency direction toward
 
 ## Overall Timeline
 - Phase 1 immediate; Phase 2 and 3 follow after direction review.
+- Execution plan: [plan-e9f4a1c2-cli-only-migration-execution](./plan-e9f4a1c2-cli-only-migration-execution.md)

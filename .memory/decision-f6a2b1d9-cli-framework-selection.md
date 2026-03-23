@@ -37,7 +37,7 @@ Adopt **`@effect/cli` on Bun** using **`@effect/platform-bun`** as the primary C
 ## Fallback alternative (if Effect migration cost is too high)
 **Stricli (`@stricli/core`)** is the preferred fallback.
 
-Reason: it keeps a TypeScript-first posture with a lighter conceptual model than Effect while avoiding a shift to Commander.js.
+Reason: it keeps a TypeScript-first posture with a lighter conceptual model than Effect while preserving strong typing priorities.
 
 ## Implementation guardrails
 - Define `ConsoleDisplayPrinter` as an explicit service boundary first.
