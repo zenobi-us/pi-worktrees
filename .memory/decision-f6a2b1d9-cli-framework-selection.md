@@ -2,7 +2,7 @@
 id: f6a2b1d9
 title: CLI framework selection for CLI-only migration
 created_at: 2026-03-23T19:03:27+10:30
-updated_at: 2026-03-23T19:03:27+10:30
+updated_at: 2026-03-23T19:09:13+10:30
 status: accepted
 epic_id: e9f4a1c2
 ---
@@ -16,7 +16,7 @@ Primary user constraint: **TypeScript is a primary concern**.
 
 Candidate options considered in depth:
 - `@effect/cli` (+ `@effect/platform-bun`)
-- Commander.js
+- Stricli (`@stricli/core`)
 
 Supporting research artifact:
 - [research-b7d9c4e1-typescript-cli-framework-options](./research-b7d9c4e1-typescript-cli-framework-options.md)
@@ -31,13 +31,13 @@ Adopt **`@effect/cli` on Bun** using **`@effect/platform-bun`** as the primary C
 
 ## Trade-offs accepted
 - Higher onboarding complexity (Effect runtime/layers/services).
-- Migration complexity is greater than Commander.js.
+- Migration complexity is greater than lighter parser-first alternatives.
 - Team must enforce architecture discipline to avoid mixed paradigms.
 
-## Rejected alternative (for now)
-**Commander.js** remains a fallback if migration cost or team load proves too high.
+## Fallback alternative (if Effect migration cost is too high)
+**Stricli (`@stricli/core`)** is the preferred fallback.
 
-Reason not selected now: lower type-modeling rigor relative to Effect approach, which conflicts with current priority.
+Reason: it keeps a TypeScript-first posture with a lighter conceptual model than Effect while avoiding a shift to Commander.js.
 
 ## Implementation guardrails
 - Define `ConsoleDisplayPrinter` as an explicit service boundary first.

@@ -2,7 +2,7 @@
 id: b7d9c4e1
 title: TypeScript CLI framework options for CLI-only migration
 created_at: 2026-03-23T18:20:43+10:30
-updated_at: 2026-03-23T18:59:07+10:30
+updated_at: 2026-03-23T19:09:13+10:30
 status: completed
 epic_id: e9f4a1c2
 ---
@@ -15,12 +15,12 @@ epic_id: e9f4a1c2
 - Which option balances extensibility, maintainability, and migration speed for this codebase?
 
 ## Summary
-Five strong options surfaced: **oclif** (full framework), **Commander.js** (mature parser/framework-lite), **citty/cac** (lightweight modern builders), **@effect/cli** (typed FP-style framework in the Effect ecosystem), and **CrustJS** (Bun-native modular CLI framework, currently alpha).
+Six strong options surfaced: **oclif** (full framework), **Commander.js** (mature parser/framework-lite), **citty/cac** (lightweight modern builders), **@effect/cli** (typed FP-style framework in the Effect ecosystem), **CrustJS** (Bun-native modular CLI framework, currently alpha), and **Stricli** (type-safe framework from Bloomberg).
 
-For this migration, the practical shortlist is still:
-1) Commander.js for lowest migration friction and broad ecosystem familiarity,
-2) oclif if plugin architecture and large multi-command growth are primary priorities,
-3) citty/cac if minimal footprint and fast startup are prioritized.
+For this migration, the practical shortlist is now:
+1) `@effect/cli` for primary TypeScript-rigor track,
+2) Stricli as fallback when preserving TS-first design with lower conceptual overhead,
+3) oclif only if plugin architecture and large multi-command growth become primary priorities.
 
 `@effect/cli` is compelling when the codebase already uses Effect-style architecture; CrustJS is promising for Bun-first projects but currently has earlier-stage adoption risk.
 
@@ -58,11 +58,18 @@ For this migration, the practical shortlist is still:
 - Bun/Node fit: excellent for Bun-first projects; Node fit is not positioned as a primary target in official messaging, so portability risk is higher than Node-first frameworks.
 - Adoption signal: early-stage usage (e.g., `@crustjs/core` ~251 npm downloads/week at time of research) and smaller GitHub footprint (~303 stars), indicating momentum but not yet mainstream adoption.
 
+### 6) Stricli (`@stricli/core`)
+- Summary: Type-safe CLI framework from Bloomberg with declarative command definitions and strongly typed argument handling.
+- Strengths: strong TypeScript ergonomics, good middle ground between minimal parsers and heavy runtime frameworks.
+- Weaknesses/Risks: ecosystem is smaller than Commander.js and docs/examples are less widespread.
+- Bun/Node fit: Node-focused documentation and ecosystem posture; Bun usage is possible but less explicitly documented than Effect’s Bun platform package.
+- Adoption signal: meaningful but not mainstream footprint (`@stricli/core` npm downloads ~85k/week at time of update; `bloomberg/stricli` ~1k GitHub stars).
 ### Recommendation
-- Immediate migration track: **Commander.js** (or retain current parser if equivalent) plus a dedicated interaction adapter (`ConsoleDisplayPrinter`).
+- Immediate migration track: **`@effect/cli` + `@effect/platform-bun`** plus a dedicated interaction adapter (`ConsoleDisplayPrinter`).
+- Preferred fallback: **Stricli (`@stricli/core`)**, not Commander.js.
 - Escalation trigger: move to **oclif** only if plugin/distribution complexity expands beyond current scope.
 - Conditional alternatives:
-  - choose **@effect/cli** only if you want to standardize on Effect patterns across the app,
+  - choose **Commander.js** only if migration speed outweighs TS contract rigor,
   - choose **CrustJS** only if Bun-native DX is a higher priority than ecosystem maturity.
 
 ## References
@@ -75,5 +82,7 @@ For this migration, the practical shortlist is still:
 - npm metadata (`@effect/platform-bun`): https://www.npmjs.com/package/@effect/platform-bun — Bun runtime package existence and description. [credibility: 9/10, npm registry]
 - CrustJS site: https://crustjs.com/ — Bun-native positioning, alpha status, package/module catalog. [credibility: 8/10, official project source]
 - Crust repository README: https://raw.githubusercontent.com/chenxin-yan/crust/main/README.md — architecture/modules, Bun-first framing, starter command, known-user example. [credibility: 8/10, upstream repository]
-- npm downloads API: https://api.npmjs.org/downloads/point/last-week/@effect/cli and https://api.npmjs.org/downloads/point/last-week/@crustjs/core — adoption proxy data point. [credibility: 8/10, official npm API]
-- GitHub repository signals: https://api.github.com/repos/Effect-TS/effect and https://api.github.com/repos/chenxin-yan/crust — star counts and project activity signal. [credibility: 8/10, official GitHub API]
+- Stricli intro: https://bloomberg.github.io/stricli/blog/intro — framework goals and type-safe design overview. [credibility: 9/10, official project docs]
+- Stricli repository: https://github.com/bloomberg/stricli — package organization and maintenance signal. [credibility: 8/10, upstream repository]
+- npm downloads API: https://api.npmjs.org/downloads/point/last-week/@effect/cli and https://api.npmjs.org/downloads/point/last-week/@crustjs/core and https://api.npmjs.org/downloads/point/last-week/@stricli/core — adoption proxy data point. [credibility: 8/10, official npm API]
+- GitHub repository signals: https://api.github.com/repos/Effect-TS/effect and https://api.github.com/repos/chenxin-yan/crust and https://api.github.com/repos/bloomberg/stricli — star counts and project activity signal. [credibility: 8/10, official GitHub API]
