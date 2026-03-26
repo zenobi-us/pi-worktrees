@@ -89,19 +89,6 @@ const PiWorktreeExtension: ExtensionFactory = async function (pi) {
   const configService = await createPiWorktreeConfigService();
   const queue: { msg: string; type: Parameters<ExtensionContext['ui']['notify']>[1] }[] = [];
 
-  configService.events.on('MigrationFailed', () => {
-    queue.push({ type: 'error', msg: 'MigrationFailed' });
-  });
-  configService.events.on('MigrationApplied', () => {
-    queue.push({ type: 'info', msg: 'MigrationApplied' });
-  });
-  configService.events.on('ConfigLoading', () => {
-    queue.push({ type: 'info', msg: 'ConfigLoading' });
-  });
-  configService.events.on('ConfigLoaded', () => {
-    queue.push({ type: 'info', msg: 'ConfigLoaded' });
-  });
-
   pi.on('session_start', async (event, ctx) => {
     await configService.ready;
     while (queue.length > 0) {
