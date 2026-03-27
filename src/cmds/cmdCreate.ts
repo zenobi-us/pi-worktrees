@@ -54,12 +54,15 @@ export async function cmdCreate(
   }
 
   ensureExcluded(ctx.cwd, current.parentDir);
-
-  ctx.ui.notify(`Creating worktree: ${featureName}`, 'info');
+  const stopBusy = deps.statusService.busy(ctx, `Creating worktree: ${featureName}...`);
 
   try {
     git(['worktree', 'add', '-b', branchName, worktreePath], current.mainWorktree);
+    stopBusy();
+    deps.statusService.positive(ctx, `Created: ${featureName}`);
   } catch (err) {
+    stopBusy();
+    deps.statusService.critical(ctx, `Failed to create worktree`);
     ctx.ui.notify(`Failed to create worktree: ${(err as Error).message}`, 'error');
     return;
   }

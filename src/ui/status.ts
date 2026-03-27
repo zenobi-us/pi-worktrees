@@ -10,7 +10,8 @@ export class StatusIndicator {
   public busyStyle: keyof typeof StatusIndicator.busyStyles;
   private busyFrames: string[];
   private progressStyle: keyof typeof StatusIndicator.progressStyles = 'bars';
-  private progressFrames: (percent: number) => string;
+  // eslint-disable-next-line no-unused-vars
+  private progressFrames: (_percent: number) => string;
 
   constructor(
     statusKey: string,

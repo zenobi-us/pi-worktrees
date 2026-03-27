@@ -100,14 +100,24 @@ export const cmdList: CmdHandler = async (_args, ctx, deps) => {
     mainWorktree: current.mainWorktree,
   };
 
-  await runOnCreateHook(createdCtx, current, ctx.ui.notify.bind(ctx.ui), {
-    logPath,
-    displayOutputMaxLines: current.onCreateDisplayOutputMaxLines,
-    cmdDisplayPending: current.onCreateCmdDisplayPending,
-    cmdDisplaySuccess: current.onCreateCmdDisplaySuccess,
-    cmdDisplayError: current.onCreateCmdDisplayError,
-    cmdDisplayPendingColor: current.onCreateCmdDisplayPendingColor,
-    cmdDisplaySuccessColor: current.onCreateCmdDisplaySuccessColor,
-    cmdDisplayErrorColor: current.onCreateCmdDisplayErrorColor,
-  });
+  const stopBusy = deps.statusService.busy(ctx, `Running onCreate for ${target.branch}...`);
+
+  try {
+    await runOnCreateHook(createdCtx, current, ctx.ui.notify.bind(ctx.ui), {
+      logPath,
+      displayOutputMaxLines: current.onCreateDisplayOutputMaxLines,
+      cmdDisplayPending: current.onCreateCmdDisplayPending,
+      cmdDisplaySuccess: current.onCreateCmdDisplaySuccess,
+      cmdDisplayError: current.onCreateCmdDisplayError,
+      cmdDisplayPendingColor: current.onCreateCmdDisplayPendingColor,
+      cmdDisplaySuccessColor: current.onCreateCmdDisplaySuccessColor,
+      cmdDisplayErrorColor: current.onCreateCmdDisplayErrorColor,
+    });
+    stopBusy();
+    deps.statusService.positive(ctx, `onCreate complete: ${target.branch}`);
+  } catch (err) {
+    stopBusy();
+    deps.statusService.critical(ctx, `onCreate failed`);
+    ctx.ui.notify(`onCreate failed: ${(err as Error).message}`, 'error');
+  }
 };

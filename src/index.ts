@@ -5,7 +5,7 @@
  * Codifies the patterns from the using-git-worktrees skill into an interactive command.
  */
 
-import type { ExtensionFactory, ExtensionContext } from '@mariozechner/pi-coding-agent';
+import type { ExtensionFactory } from '@mariozechner/pi-coding-agent';
 import type { CmdHandler } from './types.ts';
 import { cmdCd } from './cmds/cmdCd.ts';
 import { cmdCreate } from './cmds/cmdCreate.ts';
@@ -18,6 +18,7 @@ import { cmdStatus } from './cmds/cmdStatus.ts';
 import { cmdTemplates } from './cmds/cmdTemplates.ts';
 import { createPiWorktreeConfigService } from './services/config/config.ts';
 import { createCompletionFactory } from './services/completions.ts';
+import { StatusIndicator } from './ui/status.ts';
 
 const HELP_TEXT = `
 /worktree - Git worktree management
@@ -87,19 +88,7 @@ const commands: Record<string, CmdHandler> = {
 
 const PiWorktreeExtension: ExtensionFactory = async function (pi) {
   const configService = await createPiWorktreeConfigService();
-  const queue: { msg: string; type: Parameters<ExtensionContext['ui']['notify']>[1] }[] = [];
-
-  pi.on('session_start', async (event, ctx) => {
-    await configService.ready;
-    while (queue.length > 0) {
-      const notification = queue.shift();
-      if (!notification) {
-        return;
-      }
-      ctx.ui.setStatus(`Worktrees`, notification.msg);
-    }
-  });
-
+  const statusService = new StatusIndicator('pi-worktree');
   const getSubcommandCompletions = createCompletionFactory(commands);
 
   pi.registerCommand('worktree', {
@@ -122,6 +111,7 @@ const PiWorktreeExtension: ExtensionFactory = async function (pi) {
         await command(rest.join(' '), ctx, {
           settings,
           configService,
+          statusService,
         });
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);

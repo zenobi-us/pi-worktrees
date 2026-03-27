@@ -8,6 +8,7 @@ import {
   type WorktreeInfo,
 } from '../services/git.ts';
 import type { CommandDeps } from '../types.ts';
+import type { StatusIndicator } from '../ui/status.ts';
 
 function findTarget(
   worktrees: WorktreeInfo[],
@@ -55,7 +56,8 @@ async function pickWorktreeInteractively(
 async function removeWorktreeWithConfirm(
   ctx: ExtensionCommandContext,
   cwd: string,
-  target: WorktreeInfo
+  target: WorktreeInfo,
+  status: StatusIndicator
 ): Promise<void> {
   const confirmed = await ctx.ui.confirm(
     'Remove worktree?',
@@ -67,24 +69,32 @@ async function removeWorktreeWithConfirm(
     return;
   }
 
+  const stopBusy = status.busy(ctx, 'Removing worktree...');
   try {
     git(['worktree', 'remove', target.path], cwd);
+    stopBusy();
+    status.positive(ctx, `Removed: ${target.path}`);
     ctx.ui.notify(`✓ Worktree removed: ${target.path}`, 'info');
   } catch {
+    stopBusy();
     const forceConfirmed = await ctx.ui.confirm(
       'Force remove?',
       'Worktree has uncommitted changes. Force remove anyway?'
     );
-
     if (!forceConfirmed) {
       ctx.ui.notify('Cancelled', 'info');
       return;
     }
 
+    const stopForceBusy = status.busy(ctx, 'Force removing worktree...');
     try {
       git(['worktree', 'remove', '--force', target.path], cwd);
+      stopForceBusy();
+      status.positive(ctx, `Force removed: ${target.path}`);
       ctx.ui.notify(`✓ Worktree force removed: ${target.path}`, 'info');
     } catch (forceErr) {
+      stopForceBusy();
+      status.critical(ctx, `Failed to remove`);
       ctx.ui.notify(`Failed to remove: ${(forceErr as Error).message}`, 'error');
     }
   }
@@ -139,5 +149,5 @@ export async function cmdRemove(
     }
   }
 
-  await removeWorktreeWithConfirm(ctx, ctx.cwd, target);
+  await removeWorktreeWithConfirm(ctx, ctx.cwd, target, deps.statusService);
 }
