@@ -10,6 +10,14 @@ type ConfigCurrent = WorktreeSettingsConfig & {
   project: string;
   mainWorktree: string;
   parentDir: string;
+  logfile: string;
+  onCreateDisplayOutputMaxLines: number;
+  onCreateCmdDisplayPending: string;
+  onCreateCmdDisplaySuccess: string;
+  onCreateCmdDisplayError: string;
+  onCreateCmdDisplayPendingColor: string;
+  onCreateCmdDisplaySuccessColor: string;
+  onCreateCmdDisplayErrorColor: string;
 };
 
 function createCurrentResolver(repo: string, repos: Map<string, WorktreeSettingsConfig>) {
@@ -26,6 +34,14 @@ function createCurrentResolver(repo: string, repos: Map<string, WorktreeSettings
       project: 'repo',
       mainWorktree: '/main/repo',
       parentDir: settings.parentDir ?? '/main/repo.worktrees',
+      logfile: '/tmp/pi-worktree-{sessionId}-{name}.log',
+      onCreateDisplayOutputMaxLines: 5,
+      onCreateCmdDisplayPending: '[ ] {{cmd}}',
+      onCreateCmdDisplaySuccess: '[x] {{cmd}}',
+      onCreateCmdDisplayError: '[ ] {{cmd}} [ERROR]',
+      onCreateCmdDisplayPendingColor: 'dim',
+      onCreateCmdDisplaySuccessColor: 'success',
+      onCreateCmdDisplayErrorColor: 'error',
     } as ConfigCurrent;
   };
 }
@@ -36,16 +52,27 @@ function createDeps(currentResolver: () => ConfigCurrent): CommandDeps {
     configService: {
       current: vi.fn(() => currentResolver()),
     } as unknown as CommandDeps['configService'],
+    statusService: {
+      busy: vi.fn(() => vi.fn()),
+      positive: vi.fn(),
+      critical: vi.fn(),
+    } as unknown as CommandDeps['statusService'],
   };
 }
 
 describe('cmdCreate resolution integration', () => {
   const notify = vi.fn();
+  const confirm = vi.fn();
+  let listWorktreesSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
+    vi.restoreAllMocks();
     notify.mockReset();
+    confirm.mockReset();
+    confirm.mockResolvedValue(true);
+
     vi.spyOn(gitService, 'isGitRepo').mockReturnValue(true);
-    vi.spyOn(gitService, 'listWorktrees').mockReturnValue([]);
+    listWorktreesSpy = vi.spyOn(gitService, 'listWorktrees').mockReturnValue([]);
     vi.spyOn(gitService, 'ensureExcluded').mockImplementation(() => {});
 
     vi.spyOn(gitService, 'git').mockImplementation((args: string[]) => {
@@ -63,7 +90,7 @@ describe('cmdCreate resolution integration', () => {
     ]);
 
     const deps = createDeps(createCurrentResolver('https://github.com/org/repo', repos));
-    const ctx = { cwd: '/main/repo', ui: { notify } };
+    const ctx = { cwd: '/main/repo', hasUI: true, ui: { notify, confirm } };
 
     await cmdCreate('feature-a', ctx as never, deps);
 
@@ -83,7 +110,7 @@ describe('cmdCreate resolution integration', () => {
     ]);
 
     const deps = createDeps(createCurrentResolver('https://github.com/org/repo', repos));
-    const ctx = { cwd: '/main/repo', ui: { notify } };
+    const ctx = { cwd: '/main/repo', hasUI: true, ui: { notify, confirm } };
 
     await cmdCreate('feature-b', ctx as never, deps);
 
@@ -94,5 +121,44 @@ describe('cmdCreate resolution integration', () => {
 
     const notifiedText = notify.mock.calls.map(([msg]) => String(msg)).join('\n');
     expect(notifiedText).toContain('[ ] echo fallback');
+  });
+
+  it('prompts to switch when worktree already exists and runs onSwitch hook', async () => {
+    const repos = new Map<string, WorktreeSettingsConfig>([
+      [
+        'github.com/org/repo',
+        {
+          parentDir: '/tmp/exact.worktrees',
+          onCreate: 'echo create-hook',
+          onSwitch: 'echo switch-hook {{name}}',
+        },
+      ],
+    ]);
+
+    listWorktreesSpy.mockReturnValue([
+      {
+        path: '/tmp/exact.worktrees/feature-a',
+        branch: 'feature/feature-a',
+        head: 'abc123',
+        isMain: false,
+        isCurrent: false,
+      },
+    ]);
+
+    const deps = createDeps(createCurrentResolver('https://github.com/org/repo', repos));
+    const ctx = { cwd: '/main/repo', hasUI: true, ui: { notify, confirm } };
+
+    await cmdCreate('feature-a', ctx as never, deps);
+
+    expect(confirm).toHaveBeenCalled();
+    expect(gitService.git).not.toHaveBeenCalledWith(
+      ['worktree', 'add', '-b', 'feature/feature-a', '/tmp/exact.worktrees/feature-a'],
+      '/main/repo'
+    );
+
+    const notifiedText = notify.mock.calls.map(([msg]) => String(msg)).join('\n');
+    expect(notifiedText).toContain('onSwitch steps:');
+    expect(notifiedText).toContain('echo switch-hook feature-a');
+    expect(notifiedText).not.toContain('echo create-hook');
   });
 });
