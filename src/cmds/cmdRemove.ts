@@ -7,9 +7,24 @@ import {
   listWorktrees,
   type WorktreeInfo,
 } from '../services/git.ts';
-import type { CommandDeps } from '../types.ts';
+import type { CommandDeps, WorktreeCreatedContext } from '../types.ts';
 import type { StatusIndicator } from '../ui/status.ts';
+import { runHook } from './shared.ts';
+import { DefaultLogfileTemplate } from '../services/config/config.ts';
 
+function sanitizePathPart(value: string): string {
+  return value.replace(/[^a-zA-Z0-9._-]/g, '-');
+}
+
+function resolveLogfilePath(
+  template: string,
+  values: Record<'sessionId' | 'name' | 'timestamp', string>
+): string {
+  return template
+    .replace(/\{\{sessionId\}\}|\{sessionId\}/g, values.sessionId)
+    .replace(/\{\{name\}\}|\{name\}/g, values.name)
+    .replace(/\{\{timestamp\}\}|\{timestamp\}/g, values.timestamp);
+}
 function findTarget(
   worktrees: WorktreeInfo[],
   worktreeName: string,
@@ -57,7 +72,8 @@ async function removeWorktreeWithConfirm(
   ctx: ExtensionCommandContext,
   cwd: string,
   target: WorktreeInfo,
-  status: StatusIndicator
+  status: StatusIndicator,
+  runBeforeRemove?: () => Promise<boolean>
 ): Promise<void> {
   const confirmed = await ctx.ui.confirm(
     'Remove worktree?',
@@ -67,6 +83,13 @@ async function removeWorktreeWithConfirm(
   if (!confirmed) {
     ctx.ui.notify('Cancelled', 'info');
     return;
+  }
+
+  if (runBeforeRemove) {
+    const canContinue = await runBeforeRemove();
+    if (!canContinue) {
+      return;
+    }
   }
 
   const stopBusy = status.busy(ctx, 'Removing worktree...');
@@ -149,5 +172,47 @@ export async function cmdRemove(
     }
   }
 
-  await removeWorktreeWithConfirm(ctx, ctx.cwd, target, deps.statusService);
+  const current = deps.configService.current({ cwd: target.path });
+
+  await removeWorktreeWithConfirm(ctx, ctx.cwd, target, deps.statusService, async () => {
+    if (!current.onBeforeRemove) {
+      return true;
+    }
+
+    const hookCtx: WorktreeCreatedContext = {
+      path: target.path,
+      name: basename(target.path),
+      branch: target.branch,
+      project: current.project,
+      mainWorktree: current.mainWorktree,
+    };
+
+    const sessionId = sanitizePathPart(ctx.sessionManager?.getSessionId?.() || 'session');
+    const safeName = sanitizePathPart(hookCtx.name);
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const logPath = resolveLogfilePath(current.logfile ?? DefaultLogfileTemplate, {
+      sessionId,
+      name: safeName,
+      timestamp,
+    });
+
+    const result = await runHook(
+      hookCtx,
+      current.onBeforeRemove,
+      'onBeforeRemove',
+      ctx.ui.notify.bind(ctx.ui),
+      {
+        logPath,
+        displayOutputMaxLines: current.onCreateDisplayOutputMaxLines,
+        cmdDisplayPending: current.onCreateCmdDisplayPending,
+        cmdDisplaySuccess: current.onCreateCmdDisplaySuccess,
+        cmdDisplayError: current.onCreateCmdDisplayError,
+        cmdDisplayPendingColor: current.onCreateCmdDisplayPendingColor,
+        cmdDisplaySuccessColor: current.onCreateCmdDisplaySuccessColor,
+        cmdDisplayErrorColor: current.onCreateCmdDisplayErrorColor,
+      }
+    );
+
+    return result.success;
+  });
 }

@@ -2,7 +2,7 @@ import { basename } from 'path';
 import { DefaultLogfileTemplate } from '../services/config/config.ts';
 import { isGitRepo, listWorktrees, type WorktreeInfo } from '../services/git.ts';
 import type { CmdHandler, WorktreeCreatedContext } from '../types.ts';
-import { runOnCreateHook } from './shared.ts';
+import { runHook } from './shared.ts';
 
 function sanitizePathPart(value: string): string {
   return value.replace(/[^a-zA-Z0-9._-]/g, '-');
@@ -63,7 +63,7 @@ export const cmdList: CmdHandler = async (_args, ctx, deps) => {
 
   const options = worktrees.map(formatWorktreeOption);
   const byOption = new Map(options.map((option, index) => [option, worktrees[index]]));
-  const selected = await ctx.ui.select('Select worktree to run onCreate', options);
+  const selected = await ctx.ui.select('Select worktree to switch to', options);
 
   if (selected === undefined) {
     ctx.ui.notify('Cancelled', 'info');
@@ -78,8 +78,8 @@ export const cmdList: CmdHandler = async (_args, ctx, deps) => {
 
   const current = deps.configService.current({ cwd: target.path });
 
-  if (!current.onCreate) {
-    ctx.ui.notify(`No onCreate configured for: ${target.path}`, 'info');
+  if (!current.onSwitch) {
+    ctx.ui.notify(`No onSwitch configured for: ${target.path}`, 'info');
     return;
   }
 
@@ -100,10 +100,10 @@ export const cmdList: CmdHandler = async (_args, ctx, deps) => {
     mainWorktree: current.mainWorktree,
   };
 
-  const stopBusy = deps.statusService.busy(ctx, `Running onCreate for ${target.branch}...`);
+  const stopBusy = deps.statusService.busy(ctx, `Running onSwitch for ${target.branch}...`);
 
   try {
-    await runOnCreateHook(createdCtx, current, ctx.ui.notify.bind(ctx.ui), {
+    await runHook(createdCtx, current.onSwitch, 'onSwitch', ctx.ui.notify.bind(ctx.ui), {
       logPath,
       displayOutputMaxLines: current.onCreateDisplayOutputMaxLines,
       cmdDisplayPending: current.onCreateCmdDisplayPending,
@@ -114,10 +114,10 @@ export const cmdList: CmdHandler = async (_args, ctx, deps) => {
       cmdDisplayErrorColor: current.onCreateCmdDisplayErrorColor,
     });
     stopBusy();
-    deps.statusService.positive(ctx, `onCreate complete: ${target.branch}`);
+    deps.statusService.positive(ctx, `onSwitch complete: ${target.branch}`);
   } catch (err) {
     stopBusy();
-    deps.statusService.critical(ctx, `onCreate failed`);
-    ctx.ui.notify(`onCreate failed: ${(err as Error).message}`, 'error');
+    deps.statusService.critical(ctx, `onSwitch failed`);
+    ctx.ui.notify(`onSwitch failed: ${(err as Error).message}`, 'error');
   }
 };

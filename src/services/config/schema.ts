@@ -10,13 +10,15 @@ import {
   Integer as TypeInteger,
 } from 'typebox';
 
-const OnCreateSchema = Union([TypeString(), TypeArray(TypeString())]);
+const HookCommandsSchema = Union([TypeString(), TypeArray(TypeString())]);
 
 const WorktreeSettingsSchema = TypeObject(
   {
     worktreeRoot: Optional(TypeString()),
     parentDir: Optional(TypeString()),
-    onCreate: Optional(OnCreateSchema),
+    onCreate: Optional(HookCommandsSchema),
+    onSwitch: Optional(HookCommandsSchema),
+    onBeforeRemove: Optional(HookCommandsSchema),
   },
   {
     $id: 'WorktreeSettingsConfig',

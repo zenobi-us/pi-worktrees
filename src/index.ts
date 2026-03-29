@@ -27,8 +27,8 @@ Commands:
   /worktree init                   Configure worktree settings interactively
   /worktree settings [key] [val]   Get/set individual settings
   /worktree create <feature-name>  Create new worktree with branch
-  /worktree list                   List all worktrees
-  /worktree remove <name>          Remove a worktree
+  /worktree list                   List worktrees and run onSwitch for a selection
+  /worktree remove <name>          Remove a worktree (runs onBeforeRemove if set)
   /worktree status                 Show current worktree info
   /worktree cd <name>              Print path to worktree
   /worktree prune                  Clean up stale references
@@ -39,7 +39,9 @@ Configuration (~/.pi/agent/pi-worktrees.config.json):
     "worktrees": {
       "github.com/org/repo": {
         "worktreeRoot": "~/work/org",
-        "onCreate": ["mise install", "bun install"]
+        "onCreate": ["mise install", "bun install"],
+        "onSwitch": "mise run dev:resume",
+        "onBeforeRemove": "bun test"
       },
       "github.com/org/*": {
         "worktreeRoot": "~/work/org-other",
@@ -65,7 +67,8 @@ Pattern matching: exact URL > most-specific glob > fallback (worktree)
 Matching strategies: fail-on-tie | first-wins | last-wins
 
 Config note: parentDir is deprecated and supported as an alias for worktreeRoot.
-Template vars: {{path}}, {{name}}, {{branch}}, {{project}}, {{mainWorktree}}
+Hook vars: {{path}}, {{name}}, {{branch}}, {{project}}, {{mainWorktree}}
+Hooks: onCreate (new), onSwitch (existing), onBeforeRemove (pre-delete, non-zero blocks)
 Logfile vars: {sessionId} / {{sessionId}}, {name} / {{name}}, {timestamp} / {{timestamp}}
 `.trim();
 

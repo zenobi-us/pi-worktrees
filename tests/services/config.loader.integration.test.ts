@@ -58,7 +58,7 @@ beforeEach(() => {
 });
 
 describe('config loader integration', () => {
-  it('parses worktrees map with onCreate as string or string[]', async () => {
+  it('parses worktree hooks as string or string[]', async () => {
     await createPiWorktreeConfigService();
 
     const parse = capturedOptions?.parse as ParseConfigFn | undefined;
@@ -69,6 +69,8 @@ describe('config loader integration', () => {
         'github.com/org/repo': {
           parentDir: '/tmp/repo.worktrees',
           onCreate: 'cd {cwd}',
+          onSwitch: 'echo switched',
+          onBeforeRemove: 'echo removing',
         },
       },
       logfile: '/tmp/pi-worktree-{sessionId}-{name}.log',
@@ -86,6 +88,8 @@ describe('config loader integration', () => {
         'github.com/org/repo': {
           parentDir: '/tmp/repo.worktrees',
           onCreate: ['cd {cwd}', 'git status'],
+          onSwitch: ['echo switched', 'pwd'],
+          onBeforeRemove: ['echo removing', 'git status --short'],
         },
       },
       logfile: '/tmp/pi-worktree-{sessionId}-{name}-{timestamp}.log',
@@ -103,6 +107,8 @@ describe('config loader integration', () => {
         'github.com/org/repo': {
           parentDir: '/tmp/repo.worktrees',
           onCreate: 'cd {cwd}',
+          onSwitch: 'echo switched',
+          onBeforeRemove: 'echo removing',
         },
       },
       logfile: '/tmp/pi-worktree-{sessionId}-{name}.log',
@@ -120,6 +126,8 @@ describe('config loader integration', () => {
         'github.com/org/repo': {
           parentDir: '/tmp/repo.worktrees',
           onCreate: ['cd {cwd}', 'git status'],
+          onSwitch: ['echo switched', 'pwd'],
+          onBeforeRemove: ['echo removing', 'git status --short'],
         },
       },
       logfile: '/tmp/pi-worktree-{sessionId}-{name}-{timestamp}.log',
