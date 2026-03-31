@@ -51,9 +51,12 @@ export async function cmdCreate(
       return;
     }
 
+    const confirmMessage = current.onSwitch
+      ? `Path: ${existingWorktree.path}\nBranch: ${existingWorktree.branch}\n\nSwitch to this worktree and run onSwitch?`
+      : `Path: ${existingWorktree.path}\nBranch: ${existingWorktree.branch}\n\nSwitch to this worktree?`;
     const shouldSwitch = await ctx.ui.confirm(
       'Worktree already exists',
-      `Path: ${existingWorktree.path}\nBranch: ${existingWorktree.branch}\n\nSwitch to this worktree and run onSwitch?`
+      confirmMessage
     );
 
     if (!shouldSwitch) {
