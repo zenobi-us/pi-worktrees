@@ -38,6 +38,19 @@ export interface OnCreateHookOptions {
   cmdDisplaySuccessColor?: string;
   cmdDisplayErrorColor?: string;
 }
+export function sanitizePathPart(value: string): string {
+  return value.replace(/[^a-zA-Z0-9._-]/g, '-');
+}
+
+export function resolveLogfilePath(
+  template: string,
+  values: Record<'sessionId' | 'name' | 'timestamp', string>
+): string {
+  return template
+    .replace(/\{\{sessionId\}\}|\{sessionId\}/g, values.sessionId)
+    .replace(/\{\{name\}\}|\{name\}/g, values.name)
+    .replace(/\{\{timestamp\}\}|\{timestamp\}/g, values.timestamp);
+}
 
 const ANSI = {
   reset: '\u001b[0m',

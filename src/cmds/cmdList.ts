@@ -2,21 +2,8 @@ import { basename } from 'path';
 import { DefaultLogfileTemplate } from '../services/config/config.ts';
 import { isGitRepo, listWorktrees, type WorktreeInfo } from '../services/git.ts';
 import type { CmdHandler, WorktreeCreatedContext } from '../types.ts';
-import { runHook } from './shared.ts';
+import { resolveLogfilePath, runHook, sanitizePathPart } from './shared.ts';
 
-function sanitizePathPart(value: string): string {
-  return value.replace(/[^a-zA-Z0-9._-]/g, '-');
-}
-
-function resolveLogfilePath(
-  template: string,
-  values: Record<'sessionId' | 'name' | 'timestamp', string>
-): string {
-  return template
-    .replace(/\{\{sessionId\}\}|\{sessionId\}/g, values.sessionId)
-    .replace(/\{\{name\}\}|\{name\}/g, values.name)
-    .replace(/\{\{timestamp\}\}|\{timestamp\}/g, values.timestamp);
-}
 
 function formatWorktreeOption(worktree: WorktreeInfo): string {
   const markers = [worktree.isMain ? '[main]' : '', worktree.isCurrent ? '[current]' : '']

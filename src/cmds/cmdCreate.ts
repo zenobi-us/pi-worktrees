@@ -1,23 +1,10 @@
 import type { ExtensionCommandContext } from '@mariozechner/pi-coding-agent';
 import { basename, join } from 'path';
 import { ensureExcluded, git, isGitRepo, listWorktrees } from '../services/git.ts';
-import { runHook, runOnCreateHook } from './shared.ts';
+import { resolveLogfilePath, runHook, runOnCreateHook, sanitizePathPart } from './shared.ts';
 import type { CommandDeps, WorktreeCreatedContext } from '../types.ts';
 import { DefaultLogfileTemplate } from '../services/config/config.ts';
 
-function sanitizePathPart(value: string): string {
-  return value.replace(/[^a-zA-Z0-9._-]/g, '-');
-}
-
-function resolveLogfilePath(
-  template: string,
-  values: Record<'sessionId' | 'name' | 'timestamp', string>
-): string {
-  return template
-    .replace(/\{\{sessionId\}\}|\{sessionId\}/g, values.sessionId)
-    .replace(/\{\{name\}\}|\{name\}/g, values.name)
-    .replace(/\{\{timestamp\}\}|\{timestamp\}/g, values.timestamp);
-}
 
 // TODO: this needs to be rethought so that we use configService.current(ctx.cwd)
 export async function cmdCreate(
