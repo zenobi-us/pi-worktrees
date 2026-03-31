@@ -33,7 +33,7 @@ Commands:
   /worktree prune                  Clean up stale references
   /worktree templates              Show template variables preview
 
-Configuration (~/.pi/agent/pi-worktrees-settings.json):
+Configuration (~/.pi/agent/pi-worktrees.config.json):
   {
     "worktrees": {
       "github.com/org/repo": {
