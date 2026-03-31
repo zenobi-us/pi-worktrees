@@ -1,7 +1,12 @@
 import type { ExtensionCommandContext } from '@mariozechner/pi-coding-agent';
 import { git, isGitRepo } from '../services/git.ts';
+import type { CommandDeps } from '../types.ts';
 
-export async function cmdPrune(_args: string, ctx: ExtensionCommandContext): Promise<void> {
+export async function cmdPrune(
+  _args: string,
+  ctx: ExtensionCommandContext,
+  deps: CommandDeps
+): Promise<void> {
   if (!isGitRepo(ctx.cwd)) {
     ctx.ui.notify('Not in a git repository', 'error');
     return;
@@ -30,10 +35,15 @@ export async function cmdPrune(_args: string, ctx: ExtensionCommandContext): Pro
     return;
   }
 
+  const stopBusy = deps.statusService.busy(ctx, 'Pruning stale worktrees...');
   try {
     git(['worktree', 'prune'], ctx.cwd);
+    stopBusy();
+    deps.statusService.positive(ctx, 'Pruned stale references');
     ctx.ui.notify('✓ Stale worktree references pruned', 'info');
   } catch (err) {
+    stopBusy();
+    deps.statusService.critical(ctx, 'Failed to prune');
     ctx.ui.notify(`Failed to prune: ${(err as Error).message}`, 'error');
   }
 }

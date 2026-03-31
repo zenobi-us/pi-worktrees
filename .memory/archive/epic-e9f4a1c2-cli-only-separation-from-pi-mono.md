@@ -3,7 +3,7 @@ id: e9f4a1c2
 title: Convert project to CLI-only and decouple from pi-mono
 created_at: 2026-03-23T18:20:43+10:30
 updated_at: 2026-03-23T19:25:11+10:30
-status: in-progress
+status: cancelled
 ---
 
 # Convert project to CLI-only and decouple from pi-mono
@@ -61,3 +61,10 @@ Move this project to a CLI-only architecture with no dependency direction toward
 ## Overall Timeline
 - Phase 1 immediate; Phase 2 and 3 follow after direction review.
 - Execution plan: [plan-e9f4a1c2-cli-only-migration-execution](./plan-e9f4a1c2-cli-only-migration-execution.md)
+
+## Cancellation
+- **Cancelled**: 2026-03-26
+- **Reason**: User decision to abandon this direction.
+- **Preserved Knowledge**: Research artifacts retained for future reference:
+  - [research-b7d9c4e1-typescript-cli-framework-options](./research-b7d9c4e1-typescript-cli-framework-options.md)
+  - [research-c3f9a27e-cli-separation-audit-ui-dependencies](./research-c3f9a27e-cli-separation-audit-ui-dependencies.md)

@@ -5,7 +5,7 @@
  * Codifies the patterns from the using-git-worktrees skill into an interactive command.
  */
 
-import type { ExtensionFactory, ExtensionContext } from '@mariozechner/pi-coding-agent';
+import type { ExtensionFactory } from '@mariozechner/pi-coding-agent';
 import type { CmdHandler } from './types.ts';
 import { cmdCd } from './cmds/cmdCd.ts';
 import { cmdCreate } from './cmds/cmdCreate.ts';
@@ -18,6 +18,7 @@ import { cmdStatus } from './cmds/cmdStatus.ts';
 import { cmdTemplates } from './cmds/cmdTemplates.ts';
 import { createPiWorktreeConfigService } from './services/config/config.ts';
 import { createCompletionFactory } from './services/completions.ts';
+import { StatusIndicator } from './ui/status.ts';
 
 const HELP_TEXT = `
 /worktree - Git worktree management
@@ -26,8 +27,8 @@ Commands:
   /worktree init                   Configure worktree settings interactively
   /worktree settings [key] [val]   Get/set individual settings
   /worktree create <feature-name>  Create new worktree with branch
-  /worktree list                   List all worktrees
-  /worktree remove <name>          Remove a worktree
+  /worktree list                   List worktrees and run onSwitch for a selection
+  /worktree remove <name>          Remove a worktree (runs onBeforeRemove if set)
   /worktree status                 Show current worktree info
   /worktree cd <name>              Print path to worktree
   /worktree prune                  Clean up stale references
@@ -38,7 +39,9 @@ Configuration (~/.pi/agent/pi-worktrees.config.json):
     "worktrees": {
       "github.com/org/repo": {
         "worktreeRoot": "~/work/org",
-        "onCreate": ["mise install", "bun install"]
+        "onCreate": ["mise install", "bun install"],
+        "onSwitch": "mise run dev:resume",
+        "onBeforeRemove": "bun test"
       },
       "github.com/org/*": {
         "worktreeRoot": "~/work/org-other",
@@ -64,7 +67,8 @@ Pattern matching: exact URL > most-specific glob > fallback (worktree)
 Matching strategies: fail-on-tie | first-wins | last-wins
 
 Config note: parentDir is deprecated and supported as an alias for worktreeRoot.
-Template vars: {{path}}, {{name}}, {{branch}}, {{project}}, {{mainWorktree}}
+Hook vars: {{path}}, {{name}}, {{branch}}, {{project}}, {{mainWorktree}}
+Hooks: onCreate (new), onSwitch (existing), onBeforeRemove (pre-delete, non-zero blocks)
 Logfile vars: {sessionId} / {{sessionId}}, {name} / {{name}}, {timestamp} / {{timestamp}}
 `.trim();
 
@@ -87,32 +91,7 @@ const commands: Record<string, CmdHandler> = {
 
 const PiWorktreeExtension: ExtensionFactory = async function (pi) {
   const configService = await createPiWorktreeConfigService();
-  const queue: { msg: string; type: Parameters<ExtensionContext['ui']['notify']>[1] }[] = [];
-
-  configService.events.on('MigrationFailed', () => {
-    queue.push({ type: 'error', msg: 'MigrationFailed' });
-  });
-  configService.events.on('MigrationApplied', () => {
-    queue.push({ type: 'info', msg: 'MigrationApplied' });
-  });
-  configService.events.on('ConfigLoading', () => {
-    queue.push({ type: 'info', msg: 'ConfigLoading' });
-  });
-  configService.events.on('ConfigLoaded', () => {
-    queue.push({ type: 'info', msg: 'ConfigLoaded' });
-  });
-
-  pi.on('session_start', async (event, ctx) => {
-    await configService.ready;
-    while (queue.length > 0) {
-      const notification = queue.shift();
-      if (!notification) {
-        return;
-      }
-      ctx.ui.setStatus(`Worktrees`, notification.msg);
-    }
-  });
-
+  const statusService = new StatusIndicator('pi-worktree');
   const getSubcommandCompletions = createCompletionFactory(commands);
 
   pi.registerCommand('worktree', {
@@ -135,6 +114,7 @@ const PiWorktreeExtension: ExtensionFactory = async function (pi) {
         await command(rest.join(' '), ctx, {
           settings,
           configService,
+          statusService,
         });
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);

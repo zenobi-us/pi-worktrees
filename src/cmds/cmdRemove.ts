@@ -7,7 +7,10 @@ import {
   listWorktrees,
   type WorktreeInfo,
 } from '../services/git.ts';
-import type { CommandDeps } from '../types.ts';
+import type { CommandDeps, WorktreeCreatedContext } from '../types.ts';
+import type { StatusIndicator } from '../ui/status.ts';
+import { resolveLogfilePath, runHook, sanitizePathPart } from './shared.ts';
+import { DefaultLogfileTemplate } from '../services/config/config.ts';
 
 function findTarget(
   worktrees: WorktreeInfo[],
@@ -55,7 +58,9 @@ async function pickWorktreeInteractively(
 async function removeWorktreeWithConfirm(
   ctx: ExtensionCommandContext,
   cwd: string,
-  target: WorktreeInfo
+  target: WorktreeInfo,
+  status: StatusIndicator,
+  runBeforeRemove?: () => Promise<boolean>
 ): Promise<void> {
   const confirmed = await ctx.ui.confirm(
     'Remove worktree?',
@@ -67,24 +72,39 @@ async function removeWorktreeWithConfirm(
     return;
   }
 
+  if (runBeforeRemove) {
+    const canContinue = await runBeforeRemove();
+    if (!canContinue) {
+      return;
+    }
+  }
+
+  const stopBusy = status.busy(ctx, 'Removing worktree...');
   try {
     git(['worktree', 'remove', target.path], cwd);
+    stopBusy();
+    status.positive(ctx, `Removed: ${target.path}`);
     ctx.ui.notify(`✓ Worktree removed: ${target.path}`, 'info');
   } catch {
+    stopBusy();
     const forceConfirmed = await ctx.ui.confirm(
       'Force remove?',
       'Worktree has uncommitted changes. Force remove anyway?'
     );
-
     if (!forceConfirmed) {
       ctx.ui.notify('Cancelled', 'info');
       return;
     }
 
+    const stopForceBusy = status.busy(ctx, 'Force removing worktree...');
     try {
       git(['worktree', 'remove', '--force', target.path], cwd);
+      stopForceBusy();
+      status.positive(ctx, `Force removed: ${target.path}`);
       ctx.ui.notify(`✓ Worktree force removed: ${target.path}`, 'info');
     } catch (forceErr) {
+      stopForceBusy();
+      status.critical(ctx, `Failed to remove`);
       ctx.ui.notify(`Failed to remove: ${(forceErr as Error).message}`, 'error');
     }
   }
@@ -139,5 +159,47 @@ export async function cmdRemove(
     }
   }
 
-  await removeWorktreeWithConfirm(ctx, ctx.cwd, target);
+  const current = deps.configService.current({ cwd: target.path });
+
+  await removeWorktreeWithConfirm(ctx, ctx.cwd, target, deps.statusService, async () => {
+    if (!current.onBeforeRemove) {
+      return true;
+    }
+
+    const hookCtx: WorktreeCreatedContext = {
+      path: target.path,
+      name: basename(target.path),
+      branch: target.branch,
+      project: current.project,
+      mainWorktree: current.mainWorktree,
+    };
+
+    const sessionId = sanitizePathPart(ctx.sessionManager?.getSessionId?.() || 'session');
+    const safeName = sanitizePathPart(hookCtx.name);
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const logPath = resolveLogfilePath(current.logfile ?? DefaultLogfileTemplate, {
+      sessionId,
+      name: safeName,
+      timestamp,
+    });
+
+    const result = await runHook(
+      hookCtx,
+      current.onBeforeRemove,
+      'onBeforeRemove',
+      ctx.ui.notify.bind(ctx.ui),
+      {
+        logPath,
+        displayOutputMaxLines: current.onCreateDisplayOutputMaxLines,
+        cmdDisplayPending: current.onCreateCmdDisplayPending,
+        cmdDisplaySuccess: current.onCreateCmdDisplaySuccess,
+        cmdDisplayError: current.onCreateCmdDisplayError,
+        cmdDisplayPendingColor: current.onCreateCmdDisplayPendingColor,
+        cmdDisplaySuccessColor: current.onCreateCmdDisplaySuccessColor,
+        cmdDisplayErrorColor: current.onCreateCmdDisplayErrorColor,
+      }
+    );
+
+    return result.success;
+  });
 }

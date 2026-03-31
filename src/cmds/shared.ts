@@ -38,6 +38,19 @@ export interface OnCreateHookOptions {
   cmdDisplaySuccessColor?: string;
   cmdDisplayErrorColor?: string;
 }
+export function sanitizePathPart(value: string): string {
+  return value.replace(/[^a-zA-Z0-9._-]/g, '-');
+}
+
+export function resolveLogfilePath(
+  template: string,
+  values: Record<'sessionId' | 'name' | 'timestamp', string>
+): string {
+  return template
+    .replace(/\{\{sessionId\}\}|\{sessionId\}/g, values.sessionId)
+    .replace(/\{\{name\}\}|\{name\}/g, values.name)
+    .replace(/\{\{timestamp\}\}|\{timestamp\}/g, values.timestamp);
+}
 
 const ANSI = {
   reset: '\u001b[0m',
@@ -147,29 +160,25 @@ function formatCommandList(
   states: CommandState[],
   outputs: CommandOutput[],
   commandDisplay: CommandDisplayConfig,
+  hookName: string,
   logPath?: string,
   displayOutputMaxLines = 5
 ): string {
-  const lines: string[] = ['onCreate steps:'];
-
+  const lines: string[] = [`${hookName} steps:`];
   for (const [index, command] of commands.entries()) {
     const state = states[index];
     lines.push(formatCommandLine(command, state, commandDisplay));
-
     for (const line of getDisplayLines(outputs[index].stdout, displayOutputMaxLines)) {
       lines.push(formatOutputLine('stdout', line, state));
     }
-
     for (const line of getDisplayLines(outputs[index].stderr, displayOutputMaxLines)) {
       lines.push(formatOutputLine('stderr', line, state));
     }
   }
-
   if (logPath) {
     lines.push('');
     lines.push(`${ANSI.gray}log: ${logPath}${ANSI.reset}`);
   }
-
   return lines.join('\n');
 }
 
@@ -241,41 +250,37 @@ function runCommand(
 }
 
 /**
- * Runs post-create hooks sequentially.
+ * Runs hook commands sequentially.
  * Stops at first failure and reports the failing command.
  */
-export async function runOnCreateHook(
+export async function runHook(
   createdCtx: WorktreeCreatedContext,
-  settings: WorktreeSettingsConfig,
+  hookValue: WorktreeSettingsConfig['onCreate'] | undefined,
+  hookName: 'onCreate' | 'onSwitch' | 'onBeforeRemove',
   // eslint-disable-next-line no-unused-vars
   notify: (msg: string, type: 'info' | 'error' | 'warning') => void,
   options?: OnCreateHookOptions
 ): Promise<OnCreateResult> {
-  if (!settings.onCreate) {
+  if (!hookValue) {
     return { success: true, executed: [] };
   }
 
-  const commandTemplates = Array.isArray(settings.onCreate)
-    ? settings.onCreate
-    : [settings.onCreate];
+  const commandTemplates = Array.isArray(hookValue) ? hookValue : [hookValue];
   const commands = commandTemplates.map((template) => expandTemplate(template, createdCtx));
   const executed: string[] = [];
-
   const commandStates: CommandState[] = commands.map(() => 'pending');
   const commandOutputs: CommandOutput[] = commands.map(() => ({ stdout: '', stderr: '' }));
-
   if (options?.logPath) {
     writeFileSync(
       options.logPath,
       [
-        `# pi-worktree onCreate log`,
+        `# pi-worktree ${hookName} log`,
         `# worktree: ${createdCtx.path}`,
         `# branch: ${createdCtx.branch}`,
         '',
       ].join('\n')
     );
   }
-
   const displayOutputMaxLines = options?.displayOutputMaxLines ?? 5;
   const commandDisplay: CommandDisplayConfig = {
     pendingTemplate: options?.cmdDisplayPending ?? '[ ] {{cmd}}',
@@ -292,12 +297,12 @@ export async function runOnCreateHook(
       commandStates,
       commandOutputs,
       commandDisplay,
+      hookName,
       undefined,
       displayOutputMaxLines
     ),
     'info'
   );
-
   for (const [index, command] of commands.entries()) {
     commandStates[index] = 'running';
     notify(
@@ -306,12 +311,12 @@ export async function runOnCreateHook(
         commandStates,
         commandOutputs,
         commandDisplay,
+        hookName,
         undefined,
         displayOutputMaxLines
       ),
       'info'
     );
-
     const result = await runCommand(command, createdCtx.path, (stream, chunk) => {
       commandOutputs[index][stream] += chunk;
       notify(
@@ -320,6 +325,7 @@ export async function runOnCreateHook(
           commandStates,
           commandOutputs,
           commandDisplay,
+          hookName,
           undefined,
           displayOutputMaxLines
         ),
@@ -332,7 +338,6 @@ export async function runOnCreateHook(
     }
 
     executed.push(command);
-
     if (!result.success) {
       commandStates[index] = 'failed';
       notify(
@@ -341,13 +346,14 @@ export async function runOnCreateHook(
           commandStates,
           commandOutputs,
           commandDisplay,
+          hookName,
           options?.logPath,
           displayOutputMaxLines
         ),
         'error'
       );
       notify(
-        `onCreate failed (exit ${result.code}): ${result.stderr.slice(0, 200)}${
+        `${hookName} failed (exit ${result.code}): ${result.stderr.slice(0, 200)}${
           options?.logPath ? `\nlog: ${options.logPath}` : ''
         }`,
         'error'
@@ -362,7 +368,6 @@ export async function runOnCreateHook(
         },
       };
     }
-
     commandStates[index] = 'success';
     notify(
       formatCommandList(
@@ -370,6 +375,7 @@ export async function runOnCreateHook(
         commandStates,
         commandOutputs,
         commandDisplay,
+        hookName,
         undefined,
         displayOutputMaxLines
       ),
@@ -383,11 +389,20 @@ export async function runOnCreateHook(
       commandStates,
       commandOutputs,
       commandDisplay,
+      hookName,
       options?.logPath,
       displayOutputMaxLines
     ),
     'info'
   );
-
   return { success: true, executed };
+}
+export async function runOnCreateHook(
+  createdCtx: WorktreeCreatedContext,
+  settings: WorktreeSettingsConfig,
+  // eslint-disable-next-line no-unused-vars
+  notify: (msg: string, type: 'info' | 'error' | 'warning') => void,
+  options?: OnCreateHookOptions
+): Promise<OnCreateResult> {
+  return runHook(createdCtx, settings.onCreate, 'onCreate', notify, options);
 }

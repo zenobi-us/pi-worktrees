@@ -1,6 +1,7 @@
 import type { ExtensionCommandContext } from '@mariozechner/pi-coding-agent';
 import type { PiWorktreeConfigService } from './services/config/config.ts';
 import { WorktreeSettingsConfig } from './services/config/schema.ts';
+import { StatusIndicator } from './ui/status.ts';
 
 export interface WorktreeCreatedContext {
   path: string;
@@ -13,6 +14,7 @@ export interface WorktreeCreatedContext {
 export interface CommandDeps {
   settings: WorktreeSettingsConfig;
   configService: PiWorktreeConfigService;
+  statusService: StatusIndicator;
 }
 
 // eslint-disable-next-line no-unused-vars
