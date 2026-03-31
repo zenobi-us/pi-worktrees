@@ -5,7 +5,6 @@ import { resolveLogfilePath, runHook, runOnCreateHook, sanitizePathPart } from '
 import type { CommandDeps, WorktreeCreatedContext } from '../types.ts';
 import { DefaultLogfileTemplate } from '../services/config/config.ts';
 
-
 // TODO: this needs to be rethought so that we use configService.current(ctx.cwd)
 export async function cmdCreate(
   args: string,
@@ -41,10 +40,7 @@ export async function cmdCreate(
     const confirmMessage = current.onSwitch
       ? `Path: ${existingWorktree.path}\nBranch: ${existingWorktree.branch}\n\nSwitch to this worktree and run onSwitch?`
       : `Path: ${existingWorktree.path}\nBranch: ${existingWorktree.branch}\n\nSwitch to this worktree?`;
-    const shouldSwitch = await ctx.ui.confirm(
-      'Worktree already exists',
-      confirmMessage
-    );
+    const shouldSwitch = await ctx.ui.confirm('Worktree already exists', confirmMessage);
 
     if (!shouldSwitch) {
       ctx.ui.notify('Cancelled', 'info');

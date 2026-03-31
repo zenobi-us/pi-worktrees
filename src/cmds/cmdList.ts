@@ -4,7 +4,6 @@ import { isGitRepo, listWorktrees, type WorktreeInfo } from '../services/git.ts'
 import type { CmdHandler, WorktreeCreatedContext } from '../types.ts';
 import { resolveLogfilePath, runHook, sanitizePathPart } from './shared.ts';
 
-
 function formatWorktreeOption(worktree: WorktreeInfo): string {
   const markers = [worktree.isMain ? '[main]' : '', worktree.isCurrent ? '[current]' : '']
     .filter(Boolean)
