@@ -80,17 +80,27 @@ export async function cmdCreate(
       timestamp,
     });
 
-    await runHook(existingCtx, current.onSwitch, 'onSwitch', ctx.ui.notify.bind(ctx.ui), {
-      logPath,
-      displayOutputMaxLines: current.onCreateDisplayOutputMaxLines,
-      cmdDisplayPending: current.onCreateCmdDisplayPending,
-      cmdDisplaySuccess: current.onCreateCmdDisplaySuccess,
-      cmdDisplayError: current.onCreateCmdDisplayError,
-      cmdDisplayPendingColor: current.onCreateCmdDisplayPendingColor,
-      cmdDisplaySuccessColor: current.onCreateCmdDisplaySuccessColor,
-      cmdDisplayErrorColor: current.onCreateCmdDisplayErrorColor,
-    });
+    const result = await runHook(
+      existingCtx,
+      current.onSwitch,
+      'onSwitch',
+      ctx.ui.notify.bind(ctx.ui),
+      {
+        logPath,
+        displayOutputMaxLines: current.onCreateDisplayOutputMaxLines,
+        cmdDisplayPending: current.onCreateCmdDisplayPending,
+        cmdDisplaySuccess: current.onCreateCmdDisplaySuccess,
+        cmdDisplayError: current.onCreateCmdDisplayError,
+        cmdDisplayPendingColor: current.onCreateCmdDisplayPendingColor,
+        cmdDisplaySuccessColor: current.onCreateCmdDisplaySuccessColor,
+        cmdDisplayErrorColor: current.onCreateCmdDisplayErrorColor,
+      }
+    );
 
+    if (!result.success) {
+      ctx.ui.notify('onSwitch failed', 'error');
+      return;
+    }
     ctx.ui.notify(`Worktree path: ${existingWorktree.path}`, 'info');
     return;
   }
