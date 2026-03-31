@@ -80,7 +80,9 @@ describe('cmdRemove interactive selection integration', () => {
   });
 
   it('prompts with selectable worktrees when no name is provided', async () => {
-    select.mockResolvedValue(`${basename(removablePathB)} (feature/feature-b)\n  ${removablePathB}`);
+    select.mockResolvedValue(
+      `${basename(removablePathB)} (feature/feature-b)\n  ${removablePathB}`
+    );
     confirm.mockResolvedValue(true);
 
     const ctx = {
@@ -101,7 +103,10 @@ describe('cmdRemove interactive selection integration', () => {
     ]);
 
     expect(confirm).toHaveBeenCalled();
-    expect(gitService.git).toHaveBeenCalledWith(['worktree', 'remove', removablePathB], '/main/repo');
+    expect(gitService.git).toHaveBeenCalledWith(
+      ['worktree', 'remove', removablePathB],
+      '/main/repo'
+    );
     expect(notify).toHaveBeenCalledWith(`✓ Worktree removed: ${removablePathB}`, 'info');
   });
 
@@ -123,7 +128,9 @@ describe('cmdRemove interactive selection integration', () => {
   });
 
   it('blocks removal when onBeforeRemove exits non-zero', async () => {
-    select.mockResolvedValue(`${basename(removablePathA)} (feature/feature-a)\n  ${removablePathA}`);
+    select.mockResolvedValue(
+      `${basename(removablePathA)} (feature/feature-a)\n  ${removablePathA}`
+    );
     confirm.mockResolvedValue(true);
 
     const ctx = {
@@ -138,7 +145,10 @@ describe('cmdRemove interactive selection integration', () => {
 
     await cmdRemove('', ctx as never, createDeps('false'));
 
-    expect(gitService.git).not.toHaveBeenCalledWith(['worktree', 'remove', removablePathA], '/main/repo');
+    expect(gitService.git).not.toHaveBeenCalledWith(
+      ['worktree', 'remove', removablePathA],
+      '/main/repo'
+    );
     const notifiedText = notify.mock.calls.map(([msg]) => String(msg)).join('\n');
     expect(notifiedText).toContain('onBeforeRemove failed');
   });

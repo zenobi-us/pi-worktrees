@@ -160,7 +160,7 @@ function formatCommandList(
     }
     for (const line of getDisplayLines(outputs[index].stderr, displayOutputMaxLines)) {
       lines.push(formatOutputLine('stderr', line, state));
-  }
+    }
   }
   if (logPath) {
     lines.push('');

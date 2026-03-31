@@ -41,7 +41,9 @@ export async function cmdCreate(
 
   const existingWorktree = listWorktrees(ctx.cwd).find(
     (worktree) =>
-      worktree.path === worktreePath || basename(worktree.path) === featureName || worktree.branch === branchName
+      worktree.path === worktreePath ||
+      basename(worktree.path) === featureName ||
+      worktree.branch === branchName
   );
   if (existingWorktree) {
     if (!ctx.hasUI) {
