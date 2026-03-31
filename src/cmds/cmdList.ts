@@ -103,16 +103,30 @@ export const cmdList: CmdHandler = async (_args, ctx, deps) => {
   const stopBusy = deps.statusService.busy(ctx, `Running onSwitch for ${target.branch}...`);
 
   try {
-    await runHook(createdCtx, current.onSwitch, 'onSwitch', ctx.ui.notify.bind(ctx.ui), {
-      logPath,
-      displayOutputMaxLines: current.onCreateDisplayOutputMaxLines,
-      cmdDisplayPending: current.onCreateCmdDisplayPending,
-      cmdDisplaySuccess: current.onCreateCmdDisplaySuccess,
-      cmdDisplayError: current.onCreateCmdDisplayError,
-      cmdDisplayPendingColor: current.onCreateCmdDisplayPendingColor,
-      cmdDisplaySuccessColor: current.onCreateCmdDisplaySuccessColor,
-      cmdDisplayErrorColor: current.onCreateCmdDisplayErrorColor,
-    });
+    const result = await runHook(
+      createdCtx,
+      current.onSwitch,
+      'onSwitch',
+      ctx.ui.notify.bind(ctx.ui),
+      {
+        logPath,
+        displayOutputMaxLines: current.onCreateDisplayOutputMaxLines,
+        cmdDisplayPending: current.onCreateCmdDisplayPending,
+        cmdDisplaySuccess: current.onCreateCmdDisplaySuccess,
+        cmdDisplayError: current.onCreateCmdDisplayError,
+        cmdDisplayPendingColor: current.onCreateCmdDisplayPendingColor,
+        cmdDisplaySuccessColor: current.onCreateCmdDisplaySuccessColor,
+        cmdDisplayErrorColor: current.onCreateCmdDisplayErrorColor,
+      }
+    );
+
+    if (!result.success) {
+      stopBusy();
+      deps.statusService.critical(ctx, `onSwitch failed`);
+      ctx.ui.notify(`onSwitch failed`, 'error');
+      return;
+    }
+
     stopBusy();
     deps.statusService.positive(ctx, `onSwitch complete: ${target.branch}`);
   } catch (err) {
