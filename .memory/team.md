@@ -1,12 +1,20 @@
 # Team
 
 ## Active Work
-- Session: none
-- Epic: none
-- Phase: none
-- Owner: none
+- Session: session-20260331-1918
+- Epic: b4e9d1a7 (branch-first-create-command-and-derived-worktree-name)
+- Phase: Phase 3 / Optional generator + docs hardening (completed)
+- Owner: session-20260331-1918
+
+## Current Focus
+- Completed: branch-first direction approval + Phase 1 contract/migration outputs.
+- Completed: behavior matrix and legacy compatibility policy tasks (story 2c7f1a9e).
+- Completed: Phase 2 core implementation in `cmdCreate` + tests from locked touchpoint plan.
+- Completed: Phase 3 docs hardening tasks for branch-first README/help migration messaging.
+- Completed: implemented optional generator path (story 9a4e2f7b) with timeout, validation, provenance, docs, and tests.
 
 ## Notes
-- Previous session (session-20260323-182043) worked on `epic-e9f4a1c2-cli-only-separation-from-pi-mono`.
-- Epic cancelled 2026-03-26 per user decision.
-- Research artifacts preserved in `.memory/` for future use.
+- Task frontmatter now includes `epic_id`, `story_id`, `phase_id`, `status`, and `assigned_to`.
+- Story/task links are now wired from epic phase task lists.
+- Optional generator story (9a4e2f7b) is complete and validated by targeted tests.
+- Prepare-code-changes artifact: `plan-c8f1a2d4-phase-1-contract-to-phase-2-touchpoints.md`.
