@@ -15,7 +15,8 @@ When you’re doing multiple feature branches, hotfixes, or experiments, `git wo
 
 `pi-worktrees` gives you a guided interface inside Pi:
 
-- Create feature worktrees with consistent branch naming (`feature/<name>`)
+- Create branch-first worktrees (`/worktree create <branch>`) with predictable naming
+- Optionally generate branch names via explicit opt-in (`/worktree create --generate ...`)
 - List and inspect active worktrees
 - Remove worktrees safely (with confirmations)
 - Prune stale worktree references
@@ -59,14 +60,15 @@ pi install npm:@zenobius/pi-worktrees
 
 ```text
 /worktree init
-/worktree create auth-refactor
+/worktree create feature/auth-refactor
+/worktree create hotfix/login-timeout --name login-timeout
 /worktree list
 ```
 
 3. Optional: jump into it from your shell using the printed path:
 
 ```text
-/worktree cd auth-refactor
+/worktree cd feature-auth-refactor
 ```
 
 ## Quick start
@@ -75,11 +77,12 @@ In Pi:
 
 ```text
 /worktree init
-/worktree create auth-refactor
+/worktree create feature/auth-refactor
+/worktree create spike/new-parser --name parser-spike
 /worktree list
 /worktree status
-/worktree cd auth-refactor
-/worktree remove auth-refactor
+/worktree cd feature-auth-refactor
+/worktree remove feature-auth-refactor
 /worktree prune
 ```
 
@@ -114,7 +117,7 @@ This creates a new Zellij tab with Neovim and Pi running in the new worktree pat
 | `/worktree settings` | Show all current settings |
 | `/worktree settings <key>` | Get one setting (`worktreeRoot`, `parentDir` alias, `onCreate`) |
 | `/worktree settings <key> <value>` | Set one setting |
-| `/worktree create <feature-name>` | Create a new worktree + branch `feature/<feature-name>` |
+| `/worktree create <branch> [--name <worktree-name>]`<br/>`/worktree create --generate [--name <worktree-name>] <prompt-or-name>` | Create a new worktree from `<branch>` (default mode) or generate one via configured `branchNameGenerator` (opt-in with `--generate`) |
 | `/worktree list` | List all worktrees (`/worktree ls` alias) |
 | `/worktree status` | Show current repo/worktree status |
 | `/worktree cd <name>` | Print matching worktree path |
@@ -133,11 +136,12 @@ Settings live in `~/.pi/agent/pi-worktrees-settings.json`.
   "worktrees": {
     "github.com/org/repo": {
       "worktreeRoot": "~/work/org/repo.worktrees",
-      "onCreate": ["mise install", "bun install"]
+      "onCreate": ["mise install", "bun install"],
     },
     "github.com/org/*": {
       "worktreeRoot": "~/work/org/shared.worktrees",
-      "onCreate": "mise setup"
+      "onCreate": "mise setup",
+      "branchNameGenerator": "pi -p \"branch name for $PI_WORKTREE_PROMPT\" --model local/model"
     }
   },
   "matchingStrategy": "fail-on-tie",
@@ -168,6 +172,7 @@ Settings live in `~/.pi/agent/pi-worktrees-settings.json`.
 | `onCreateCmdDisplayPendingColor` | `string` | `dim` | Pi theme color name for pending/running command lines. |
 | `onCreateCmdDisplaySuccessColor` | `string` | `success` | Pi theme color name for successful command lines. |
 | `onCreateCmdDisplayErrorColor` | `string` | `error` | Pi theme color name for failed command lines. |
+| `worktrees[*].branchNameGenerator` | `string` | unset | Optional command used only by `/worktree create --generate ...`. Must print exactly one branch name to stdout. Receives `$PI_WORKTREE_PROMPT` env var and supports `{{prompt}}` / `{prompt}` token replacement. |
 | `worktree` (legacy) | `WorktreeSettings` | n/a | Legacy fallback shape; migrated automatically. |
 
 ### Matching model
@@ -231,6 +236,63 @@ Where new worktrees are created.
 
 > Backward compatibility: `parentDir` is still accepted as a deprecated alias for `worktreeRoot`.
 > The extension will migrate existing `parentDir` values to `worktreeRoot` automatically.
+### Create command naming contract
+
+`/worktree create` is branch-first:
+
+- Required first argument is the **branch name** to create.
+- Default worktree folder name is `slugify(branch)`.
+- Optional `--name <worktree-name>` overrides the derived folder name.
+
+### Optional branch generator (safe opt-in)
+
+Generator mode is **never automatic**. You must pass `--generate` explicitly:
+
+```text
+/worktree create --generate login-flow
+/worktree create --generate --name ui-login login-flow
+```
+
+Safety behavior:
+- Branch-first remains default source of truth.
+- `branchNameGenerator` is ignored unless `--generate` is present.
+- Generator command runs with a strict 5s timeout.
+- On timeout, non-zero exit, empty stdout, or invalid branch output: command fails and no worktree is created.
+- When a generated branch is used, Pi emits a provenance message before creation.
+Examples:
+
+```text
+/worktree create feature/login
+# branch: feature/login, worktree folder: feature-login
+
+/worktree create feature/login --name ui-login
+# branch: feature/login, worktree folder: ui-login
+```
+
+### Migration from legacy `<feature-name>` usage
+
+Old mental model:
+
+```text
+/worktree create login
+# previously implied branch feature/login
+```
+
+Current behavior:
+
+```text
+/worktree create login
+# branch: login, worktree folder: login
+```
+
+To preserve old semantics explicitly:
+
+```text
+/worktree create feature/login --name login
+```
+
+Current releases emit a warning when legacy-style single tokens are detected without `--name`.
+
 ### Template variables
 
 Available in `worktreeRoot` and `onCreate` values:
@@ -290,14 +352,14 @@ This extension does not apply a separate ad-hoc deprecation mechanism.
   |                 v
   |             [Save settings] -----------------> [Idle]
   |
-  +--> [create <name>] --> [Validate repo/name/branch/path]
+  +--> [create <branch> [--name <worktree-name>]] --> [Validate repo/name/branch/path]
   |                           |fail
   |                           v
   |                         [Error] -------------> [Idle]
   |                           |
   |                          pass
   |                           v
-  |                    [git worktree add -b feature/<name>]
+  |                    [git worktree add -b <branch> <worktreePath>]
   |                           |fail
   |                           v
   |                         [Error] -------------> [Idle]
@@ -384,8 +446,8 @@ This extension does not apply a separate ad-hoc deprecation mechanism.
 ### `Not in a git repository`
 Run commands from inside a git repo (or one of its worktrees).
 
-### `Branch 'feature/<name>' already exists`
-Choose another feature name or delete/rename the branch.
+### `Branch '<branch>' already exists`
+Choose another branch name or delete/rename the existing branch.
 
 ### Can’t remove worktree due to changes
 Use `/worktree remove <name>`, then confirm the force remove prompt.

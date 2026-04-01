@@ -26,7 +26,8 @@ const HELP_TEXT = `
 Commands:
   /worktree init                   Configure worktree settings interactively
   /worktree settings [key] [val]   Get/set individual settings
-  /worktree create <feature-name>  Create new worktree with branch
+  /worktree create <branch> [--name <worktree-name>]  Create new worktree from branch
+  /worktree create --generate [--name <worktree-name>] <prompt-or-name>  Generate branch via config command
   /worktree list                   List worktrees and run onSwitch for a selection
   /worktree remove <name>          Remove a worktree (runs onBeforeRemove if set)
   /worktree status                 Show current worktree info
@@ -41,7 +42,8 @@ Configuration (~/.pi/agent/pi-worktrees.config.json):
         "worktreeRoot": "~/work/org",
         "onCreate": ["mise install", "bun install"],
         "onSwitch": "mise run dev:resume",
-        "onBeforeRemove": "bun test"
+        "onBeforeRemove": "bun test",
+        "branchNameGenerator": "pi -p \"branch name for $PI_WORKTREE_PROMPT\" --model local/model",
       },
       "github.com/org/*": {
         "worktreeRoot": "~/work/org-other",
@@ -67,6 +69,11 @@ Pattern matching: exact URL > most-specific glob > fallback (worktree)
 Matching strategies: fail-on-tie | first-wins | last-wins
 
 Config note: parentDir is deprecated and supported as an alias for worktreeRoot.
+Naming note: default worktree name is slugify(branch); explicit '--name' takes precedence.
+Generator note: '--generate' is explicit opt-in and requires branchNameGenerator config.
+Generated branch output must be valid and is never used unless --generate is present.
+Migration note: legacy '/worktree create <feature-name>' is deprecated and now treats token as branch.
+Use '/worktree create feature/<name> --name <name>' to preserve old semantics.
 Hook vars: {{path}}, {{name}}, {{branch}}, {{project}}, {{mainWorktree}}
 Hooks: onCreate (new), onSwitch (existing), onBeforeRemove (pre-delete, non-zero blocks)
 Logfile vars: {sessionId} / {{sessionId}}, {name} / {{name}}, {timestamp} / {{timestamp}}

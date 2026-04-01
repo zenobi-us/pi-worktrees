@@ -19,6 +19,7 @@ const WorktreeSettingsSchema = TypeObject(
     onCreate: Optional(HookCommandsSchema),
     onSwitch: Optional(HookCommandsSchema),
     onBeforeRemove: Optional(HookCommandsSchema),
+    branchNameGenerator: Optional(TypeString()),
   },
   {
     $id: 'WorktreeSettingsConfig',
