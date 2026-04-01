@@ -31,11 +31,16 @@
 - Added guarded command runner with 5s timeout, stdout trim, git branch-name validation, and actionable errors.
 - Enforced safe behavior: generator never runs unless `--generate` is present; failures stop creation.
 - Added provenance notice when generated branch is used.
+
+## Cleanup Update (2026-04-02)
+- Archived 7 completed task files into `.memory/archive/`.
+- Archived 4 completed story files into `.memory/archive/` after task archival.
+- Kept research/learning notes in place (`learning-31f9c8a2`, `research-e3b7a1c9`).
 ## Artifacts Updated
 - [epic-b4e9d1a7-configurable-branch-naming-for-worktree-create](./epic-b4e9d1a7-configurable-branch-naming-for-worktree-create.md)
-- [story-2c7f1a9e-define-branch-first-command-contract-and-precedence](./story-2c7f1a9e-define-branch-first-command-contract-and-precedence.md)
-- [task-31b7f2c4-author-branch-first-behavior-matrix](./task-31b7f2c4-author-branch-first-behavior-matrix.md)
-- [task-4e9a1d6b-spec-legacy-feature-name-compatibility-policy](./task-4e9a1d6b-spec-legacy-feature-name-compatibility-policy.md)
+- [story-2c7f1a9e-define-branch-first-command-contract-and-precedence](./archive/story-2c7f1a9e-define-branch-first-command-contract-and-precedence.md)
+- [task-31b7f2c4-author-branch-first-behavior-matrix](./archive/task-31b7f2c4-author-branch-first-behavior-matrix.md)
+- [task-4e9a1d6b-spec-legacy-feature-name-compatibility-policy](./archive/task-4e9a1d6b-spec-legacy-feature-name-compatibility-policy.md)
 - [plan-c8f1a2d4-phase-1-contract-to-phase-2-touchpoints](./plan-c8f1a2d4-phase-1-contract-to-phase-2-touchpoints.md)
 - [todo](./todo.md)
 - [team](./team.md)
