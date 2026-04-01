@@ -1,10 +1,10 @@
 # Team
 
 ## Active Work
-- Session: session-20260331-1918
+- Session: session-20260402-0905
 - Epic: b4e9d1a7 (branch-first-create-command-and-derived-worktree-name)
-- Phase: Phase 3 / Optional generator + docs hardening (completed)
-- Owner: session-20260331-1918
+- Phase: Maintenance / CLEAN-UP (archive completed tasks and stories)
+- Owner: session-20260402-0905
 
 ## Current Focus
 - Completed: branch-first direction approval + Phase 1 contract/migration outputs.
