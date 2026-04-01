@@ -71,6 +71,7 @@ describe('config loader integration', () => {
           onCreate: 'cd {cwd}',
           onSwitch: 'echo switched',
           onBeforeRemove: 'echo removing',
+          branchNameGenerator: 'echo feature/from-generator',
         },
       },
       logfile: '/tmp/pi-worktree-{sessionId}-{name}.log',
@@ -90,6 +91,7 @@ describe('config loader integration', () => {
           onCreate: ['cd {cwd}', 'git status'],
           onSwitch: ['echo switched', 'pwd'],
           onBeforeRemove: ['echo removing', 'git status --short'],
+          branchNameGenerator: 'echo feature/from-generator',
         },
       },
       logfile: '/tmp/pi-worktree-{sessionId}-{name}-{timestamp}.log',
@@ -109,6 +111,7 @@ describe('config loader integration', () => {
           onCreate: 'cd {cwd}',
           onSwitch: 'echo switched',
           onBeforeRemove: 'echo removing',
+          branchNameGenerator: 'echo feature/from-generator',
         },
       },
       logfile: '/tmp/pi-worktree-{sessionId}-{name}.log',
@@ -128,6 +131,7 @@ describe('config loader integration', () => {
           onCreate: ['cd {cwd}', 'git status'],
           onSwitch: ['echo switched', 'pwd'],
           onBeforeRemove: ['echo removing', 'git status --short'],
+          branchNameGenerator: 'echo feature/from-generator',
         },
       },
       logfile: '/tmp/pi-worktree-{sessionId}-{name}-{timestamp}.log',
@@ -171,6 +175,7 @@ describe('config loader integration', () => {
       'github.com/org/repo': {
         parentDir: '/tmp/repo.worktrees',
         onCreate: ['cd {cwd}', 'git status'],
+        branchNameGenerator: 'echo feature/from-generator',
       },
     };
 

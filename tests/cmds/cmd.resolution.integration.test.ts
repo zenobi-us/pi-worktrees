@@ -92,10 +92,10 @@ describe('cmdCreate resolution integration', () => {
     const deps = createDeps(createCurrentResolver('https://github.com/org/repo', repos));
     const ctx = { cwd: '/main/repo', hasUI: true, ui: { notify, confirm } };
 
-    await cmdCreate('feature-a', ctx as never, deps);
+    await cmdCreate('feature/feature-a', ctx as never, deps);
 
     expect(gitService.git).toHaveBeenCalledWith(
-      ['worktree', 'add', '-b', 'feature/feature-a', '/tmp/exact.worktrees/feature-a'],
+      ['worktree', 'add', '-b', 'feature/feature-a', '/tmp/exact.worktrees/feature-feature-a'],
       '/main/repo'
     );
 
@@ -112,10 +112,10 @@ describe('cmdCreate resolution integration', () => {
     const deps = createDeps(createCurrentResolver('https://github.com/org/repo', repos));
     const ctx = { cwd: '/main/repo', hasUI: true, ui: { notify, confirm } };
 
-    await cmdCreate('feature-b', ctx as never, deps);
+    await cmdCreate('feature/feature-b', ctx as never, deps);
 
     expect(gitService.git).toHaveBeenCalledWith(
-      ['worktree', 'add', '-b', 'feature/feature-b', '/tmp/fallback.worktrees/feature-b'],
+      ['worktree', 'add', '-b', 'feature/feature-b', '/tmp/fallback.worktrees/feature-feature-b'],
       '/main/repo'
     );
 
@@ -137,7 +137,7 @@ describe('cmdCreate resolution integration', () => {
 
     listWorktreesSpy.mockReturnValue([
       {
-        path: '/tmp/exact.worktrees/feature-a',
+        path: '/tmp/exact.worktrees/feature-feature-a',
         branch: 'feature/feature-a',
         head: 'abc123',
         isMain: false,
@@ -148,17 +148,17 @@ describe('cmdCreate resolution integration', () => {
     const deps = createDeps(createCurrentResolver('https://github.com/org/repo', repos));
     const ctx = { cwd: '/main/repo', hasUI: true, ui: { notify, confirm } };
 
-    await cmdCreate('feature-a', ctx as never, deps);
+    await cmdCreate('feature/feature-a', ctx as never, deps);
 
     expect(confirm).toHaveBeenCalled();
     expect(gitService.git).not.toHaveBeenCalledWith(
-      ['worktree', 'add', '-b', 'feature/feature-a', '/tmp/exact.worktrees/feature-a'],
+      ['worktree', 'add', '-b', 'feature/feature-a', '/tmp/exact.worktrees/feature-feature-a'],
       '/main/repo'
     );
 
     const notifiedText = notify.mock.calls.map(([msg]) => String(msg)).join('\n');
     expect(notifiedText).toContain('onSwitch steps:');
-    expect(notifiedText).toContain('echo switch-hook feature-a');
+    expect(notifiedText).toContain('echo switch-hook feature-feature-a');
     expect(notifiedText).not.toContain('echo create-hook');
   });
 });

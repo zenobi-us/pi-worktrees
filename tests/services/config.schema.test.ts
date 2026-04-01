@@ -24,3 +24,26 @@ describe('PiWorktreeConfigSchema matchingStrategy', () => {
     ).toThrow();
   });
 });
+
+describe('PiWorktreeConfigSchema branchNameGenerator', () => {
+  it('accepts optional branchNameGenerator command string in worktree settings', () => {
+    expect(
+      Parse(PiWorktreeConfigSchema, {
+        worktrees: {
+          'github.com/org/repo': {
+            worktreeRoot: '/tmp/repo.worktrees',
+            branchNameGenerator: 'echo feature/generated',
+          },
+        },
+      })
+    ).toEqual({
+      worktrees: {
+        'github.com/org/repo': {
+          worktreeRoot: '/tmp/repo.worktrees',
+          branchNameGenerator: 'echo feature/generated',
+        },
+      },
+    });
+
+  });
+});
