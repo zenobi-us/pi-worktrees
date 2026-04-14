@@ -43,7 +43,7 @@ Configuration (~/.pi/agent/pi-worktrees.config.json):
         "onCreate": ["mise install", "bun install"],
         "onSwitch": "mise run dev:resume",
         "onBeforeRemove": "bun test",
-        "branchNameGenerator": "pi -p \"branch name for $PI_WORKTREE_PROMPT\" --model local/model",
+        "branchNameGenerator": "pi -p 'branch name for $PI_WORKTREE_PROMPT' --model local/model",
       },
       "github.com/org/*": {
         "worktreeRoot": "~/work/org-other",

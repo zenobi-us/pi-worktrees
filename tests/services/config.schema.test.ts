@@ -44,6 +44,5 @@ describe('PiWorktreeConfigSchema branchNameGenerator', () => {
         },
       },
     });
-
   });
 });

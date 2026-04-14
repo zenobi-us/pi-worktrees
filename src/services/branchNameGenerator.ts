@@ -40,7 +40,6 @@ function renderCommand(template: string, input: string): string {
   return template.replace(/\{\{prompt\}\}|\{prompt\}/g, quotedInput);
 }
 
-
 async function validateBranchName(branchName: string, cwd: string): Promise<boolean> {
   const checker = spawn('git', ['check-ref-format', '--branch', branchName], {
     cwd,
@@ -54,7 +53,9 @@ async function validateBranchName(branchName: string, cwd: string): Promise<bool
   });
 }
 
-export async function generateBranchName(params: GenerateBranchNameParams): Promise<GenerateBranchNameResult> {
+export async function generateBranchName(
+  params: GenerateBranchNameParams
+): Promise<GenerateBranchNameResult> {
   const timeoutMs = params.timeoutMs ?? BRANCH_NAME_GENERATOR_TIMEOUT_MS;
   if (!params.commandTemplate?.trim()) {
     return {
@@ -86,7 +87,7 @@ export async function generateBranchName(params: GenerateBranchNameParams): Prom
     let stderr = '';
     let done = false;
 
-    const timer = setTimeout(() => {
+    const timer = globalThis.setTimeout(() => {
       if (done) {
         return;
       }
@@ -110,7 +111,7 @@ export async function generateBranchName(params: GenerateBranchNameParams): Prom
       }
 
       done = true;
-      clearTimeout(timer);
+      globalThis.clearTimeout(timer);
       resolve({ kind: 'spawn-error', error: error.message });
     });
 
@@ -120,7 +121,7 @@ export async function generateBranchName(params: GenerateBranchNameParams): Prom
       }
 
       done = true;
-      clearTimeout(timer);
+      globalThis.clearTimeout(timer);
       resolve({ kind: 'success', stdout, stderr, code: code ?? 1 });
     });
   });
