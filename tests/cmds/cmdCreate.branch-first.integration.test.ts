@@ -178,7 +178,9 @@ describe('cmdCreate branch-first integration', () => {
     );
 
     const messages = notify.mock.calls.map(([message]) => String(message)).join('\n');
-    expect(messages).toContain("Using generated branch 'feature/from-generator' from branchNameGenerator");
+    expect(messages).toContain(
+      "Using generated branch 'feature/from-generator' from branchNameGenerator"
+    );
   });
 
   it('never uses generator when branch is explicitly provided without --generate', async () => {
@@ -189,7 +191,13 @@ describe('cmdCreate branch-first integration', () => {
 
     expect(branchGeneratorService.generateBranchName).not.toHaveBeenCalled();
     expect(gitService.git).toHaveBeenCalledWith(
-      ['worktree', 'add', '-b', 'feature/direct-branch', '/tmp/repo.worktrees/feature-direct-branch'],
+      [
+        'worktree',
+        'add',
+        '-b',
+        'feature/direct-branch',
+        '/tmp/repo.worktrees/feature-direct-branch',
+      ],
       '/main/repo'
     );
   });

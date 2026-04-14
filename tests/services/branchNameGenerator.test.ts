@@ -5,7 +5,7 @@ import { generateBranchName } from '../../src/services/branchNameGenerator.ts';
 describe('branchNameGenerator', () => {
   it('returns generated branch on success', async () => {
     const result = await generateBranchName({
-      commandTemplate: "node -e \"process.stdout.write('feature/generated\\n')\"",
+      commandTemplate: 'node -e "process.stdout.write(\'feature/generated\\n\')"',
       input: 'ignored',
       cwd: process.cwd(),
       timeoutMs: 200,
@@ -14,13 +14,13 @@ describe('branchNameGenerator', () => {
     expect(result).toEqual({
       ok: true,
       branchName: 'feature/generated',
-      command: "node -e \"process.stdout.write('feature/generated\\n')\"",
+      command: 'node -e "process.stdout.write(\'feature/generated\\n\')"',
     });
   });
 
   it('fails on timeout', async () => {
     const result = await generateBranchName({
-      commandTemplate: "node -e \"setTimeout(() => process.stdout.write('feature/late'), 500)\"",
+      commandTemplate: 'node -e "setTimeout(() => process.stdout.write(\'feature/late\'), 500)"',
       input: 'ignored',
       cwd: process.cwd(),
       timeoutMs: 25,
@@ -36,7 +36,7 @@ describe('branchNameGenerator', () => {
 
   it('fails on non-zero exit', async () => {
     const result = await generateBranchName({
-      commandTemplate: "node -e \"process.stderr.write('boom'); process.exit(2)\"",
+      commandTemplate: 'node -e "process.stderr.write(\'boom\'); process.exit(2)"',
       input: 'ignored',
       cwd: process.cwd(),
       timeoutMs: 200,
@@ -52,7 +52,7 @@ describe('branchNameGenerator', () => {
 
   it('fails on empty output', async () => {
     const result = await generateBranchName({
-      commandTemplate: "node -e \"process.stdout.write('   ')\"",
+      commandTemplate: 'node -e "process.stdout.write(\'   \')"',
       input: 'ignored',
       cwd: process.cwd(),
       timeoutMs: 200,
@@ -68,7 +68,7 @@ describe('branchNameGenerator', () => {
 
   it('fails on invalid branch output', async () => {
     const result = await generateBranchName({
-      commandTemplate: "node -e \"process.stdout.write('not a branch')\"",
+      commandTemplate: 'node -e "process.stdout.write(\'not a branch\')"',
       input: 'ignored',
       cwd: process.cwd(),
       timeoutMs: 200,
