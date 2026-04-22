@@ -35,7 +35,12 @@ Commands:
   /worktree prune                  Clean up stale references
   /worktree templates              Show template variables preview
 
-Configuration (~/.pi/agent/pi-worktrees.config.json):
+Configuration file:
+  Home (default):  ~/.pi/agent/pi-worktrees.config.json
+  Project (opt-in): <git root>/.pi/pi-worktrees.config.json
+  Run '/worktree status' to see the resolved absolute path.
+
+Example config:
   {
     "worktrees": {
       "github.com/org/repo": {
@@ -43,11 +48,15 @@ Configuration (~/.pi/agent/pi-worktrees.config.json):
         "onCreate": ["mise install", "bun install"],
         "onSwitch": "mise run dev:resume",
         "onBeforeRemove": "bun test",
-        "branchNameGenerator": "pi -p 'branch name for $PI_WORKTREE_PROMPT' --model local/model",
+        "branchNameGenerator": "pi -p 'branch name for $PI_WORKTREE_PROMPT' --model local/model"
       },
       "github.com/org/*": {
         "worktreeRoot": "~/work/org-other",
         "onCreate": "make setup"
+      },
+      "**": {
+        "worktreeRoot": "{{mainWorktree}}.worktrees",
+        "onCreate": "mise setup"
       }
     },
     "matchingStrategy": "fail-on-tie",
@@ -58,11 +67,7 @@ Configuration (~/.pi/agent/pi-worktrees.config.json):
     "onCreateCmdDisplayError": "[ ] {{cmd}} [ERROR]",
     "onCreateCmdDisplayPendingColor": "dim",
     "onCreateCmdDisplaySuccessColor": "success",
-    "onCreateCmdDisplayErrorColor": "error",
-    "worktree": {
-      "worktreeRoot": "~/.worktrees/{{project}}",
-      "onCreate": "mise setup"
-    }
+    "onCreateCmdDisplayErrorColor": "error"
   }
 
 Pattern matching: exact URL > most-specific glob > fallback (worktree)

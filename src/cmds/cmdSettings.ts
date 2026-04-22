@@ -1,9 +1,26 @@
 import type { ExtensionCommandContext } from '@mariozechner/pi-coding-agent';
 import type { CommandDeps } from '../types.ts';
-import { getConfiguredWorktreeRoot } from '../services/config/schema.ts';
+import { saveWorktreeSettings } from '../services/config/config.ts';
+import { WorktreeSettingsConfig, getConfiguredWorktreeRoot } from '../services/config/schema.ts';
 
-const VALID_SETTING_KEYS = ['worktreeRoot', 'parentDir', 'onCreate'] as const;
+const VALID_SETTING_KEYS = [
+  'worktreeRoot',
+  'parentDir',
+  'onCreate',
+  'onSwitch',
+  'onBeforeRemove',
+  'branchNameGenerator',
+] as const;
 type SettingKey = (typeof VALID_SETTING_KEYS)[number];
+type ResolvedKey = Exclude<SettingKey, 'parentDir'>;
+
+function formatHookValue(value: WorktreeSettingsConfig['onCreate']): string {
+  if (!value) {
+    return '(none)';
+  }
+
+  return Array.isArray(value) ? value.join(' && ') : value;
+}
 
 export async function cmdSettings(
   args: string,
@@ -24,12 +41,15 @@ export async function cmdSettings(
       'Worktree Settings:',
       '━━━━━━━━━━━━━━━━━━',
       '',
-      `worktreeRoot: ${getConfiguredWorktreeRoot(currentSettings) || '(default: {{mainWorktree}}.worktrees)'}`,
-      `onCreate:     ${
-        Array.isArray(currentSettings.onCreate)
-          ? currentSettings.onCreate.join(' && ')
-          : (currentSettings.onCreate ?? '(none)')
+      `worktreeRoot:        ${
+        getConfiguredWorktreeRoot(currentSettings) || '(default: {{mainWorktree}}.worktrees)'
       }`,
+      `onCreate:            ${formatHookValue(currentSettings.onCreate)}`,
+      `onSwitch:            ${formatHookValue(currentSettings.onSwitch)}`,
+      `onBeforeRemove:      ${formatHookValue(currentSettings.onBeforeRemove)}`,
+      `branchNameGenerator: ${currentSettings.branchNameGenerator ?? '(none)'}`,
+      '',
+      `Config file: ${deps.configService.getConfigPath('home')}`,
       '',
     ];
     ctx.ui.notify(lines.join('\n'), 'info');
@@ -48,17 +68,15 @@ export async function cmdSettings(
     ctx.ui.notify('`parentDir` is deprecated. Use `worktreeRoot`.', 'warning');
   }
 
-  const resolvedKey: 'worktreeRoot' | 'onCreate' = key === 'parentDir' ? 'worktreeRoot' : key;
+  const resolvedKey: ResolvedKey = key === 'parentDir' ? 'worktreeRoot' : key;
 
   if (!value && parts.length === 1) {
     if (resolvedKey === 'worktreeRoot') {
       const currentValue = getConfiguredWorktreeRoot(currentSettings);
-      if (currentValue) {
-        ctx.ui.notify('worktreeRoot: ' + currentValue, 'info');
-        return;
-      }
-
-      ctx.ui.notify('worktreeRoot: (default: {{mainWorktree}}.worktrees)', 'info');
+      ctx.ui.notify(
+        'worktreeRoot: ' + (currentValue || '(default: {{mainWorktree}}.worktrees)'),
+        'info'
+      );
       return;
     }
 
@@ -69,30 +87,33 @@ export async function cmdSettings(
       return;
     }
 
-    const defaults: Record<'worktreeRoot' | 'onCreate', string> = {
-      worktreeRoot: '(default: {{mainWorktree}}.worktrees)',
-      onCreate: '(none)',
-    };
-    ctx.ui.notify(`${resolvedKey}: ${defaults[resolvedKey]}`, 'info');
+    ctx.ui.notify(`${resolvedKey}: (none)`, 'info');
     return;
   }
 
-  const newSettings = { ...currentSettings };
+  const setFields: WorktreeSettingsConfig = {};
+  const clearKeys: (keyof WorktreeSettingsConfig)[] = [];
+  let confirmationMessage: string;
 
   if (value === '' || value === '""' || value === 'null' || value === 'clear') {
-    delete newSettings[resolvedKey];
-    delete newSettings.parentDir;
-    ctx.ui.notify(`✓ Cleared ${resolvedKey}`, 'info');
-  } else {
-    newSettings[resolvedKey] = value;
+    clearKeys.push(resolvedKey);
     if (resolvedKey === 'worktreeRoot') {
-      delete newSettings.parentDir;
+      clearKeys.push('parentDir');
     }
-    ctx.ui.notify(`✓ Set ${resolvedKey} = "${value}"`, 'info');
+    confirmationMessage = `✓ Cleared ${resolvedKey}`;
+  } else {
+    setFields[resolvedKey] = value;
+    if (resolvedKey === 'worktreeRoot') {
+      clearKeys.push('parentDir');
+    }
+    confirmationMessage = `✓ Set ${resolvedKey} = "${value}"`;
   }
 
   try {
-    // await deps.configService.save(newSettings);
+    await saveWorktreeSettings(deps.configService, {
+      fallback: { set: setFields, clear: clearKeys },
+    });
+    ctx.ui.notify(confirmationMessage, 'info');
   } catch (err) {
     ctx.ui.notify(`Failed to save settings: ${(err as Error).message}`, 'error');
   }

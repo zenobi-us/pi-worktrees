@@ -115,7 +115,7 @@ This creates a new Zellij tab with Neovim and Pi running in the new worktree pat
 |---|---|
 | `/worktree init` | Interactive setup for extension settings |
 | `/worktree settings` | Show all current settings |
-| `/worktree settings <key>` | Get one setting (`worktreeRoot`, `parentDir` alias, `onCreate`) |
+| `/worktree settings <key>` | Get one setting (`worktreeRoot`, `parentDir` alias, `onCreate`, `onSwitch`, `onBeforeRemove`, `branchNameGenerator`) |
 | `/worktree settings <key> <value>` | Set one setting |
 | `/worktree create <branch> [--name <worktree-name>]`<br/>`/worktree create --generate [--name <worktree-name>] <prompt-or-name>` | Create a new worktree from `<branch>` (default mode) or generate one via configured `branchNameGenerator` (opt-in with `--generate`) |
 | `/worktree list` | List all worktrees (`/worktree ls` alias) |
@@ -129,7 +129,9 @@ This creates a new Zellij tab with Neovim and Pi running in the new worktree pat
 
 ## Configuration
 
-Settings live in `~/.pi/agent/pi-worktrees-settings.json`.
+Settings live in `~/.pi/agent/pi-worktrees.config.json` (resolved by
+`@zenobius/pi-extension-config`). Run `/worktree status` to print the exact
+path.
 
 ```json
 {
@@ -137,11 +139,17 @@ Settings live in `~/.pi/agent/pi-worktrees-settings.json`.
     "github.com/org/repo": {
       "worktreeRoot": "~/work/org/repo.worktrees",
       "onCreate": ["mise install", "bun install"],
+      "onSwitch": "mise run dev:resume",
+      "onBeforeRemove": "bun test"
     },
     "github.com/org/*": {
       "worktreeRoot": "~/work/org/shared.worktrees",
       "onCreate": "mise setup",
       "branchNameGenerator": "pi -p \"branch name for $PI_WORKTREE_PROMPT\" --model local/model"
+    },
+    "**": {
+      "worktreeRoot": "~/.local/share/worktrees/{{project}}",
+      "onCreate": "mise setup"
     }
   },
   "matchingStrategy": "fail-on-tie",
@@ -151,11 +159,7 @@ Settings live in `~/.pi/agent/pi-worktrees-settings.json`.
   "onCreateCmdDisplayError": "[ ] {{cmd}} [ERROR]",
   "onCreateCmdDisplayPendingColor": "dim",
   "onCreateCmdDisplaySuccessColor": "success",
-  "onCreateCmdDisplayErrorColor": "error",
-  "worktree": {
-    "worktreeRoot": "~/.local/share/worktrees/{{project}}",
-    "onCreate": "mise setup"
-  }
+  "onCreateCmdDisplayErrorColor": "error"
 }
 ```
 
@@ -164,6 +168,10 @@ Settings live in `~/.pi/agent/pi-worktrees-settings.json`.
 | Key | Type | Default | Description |
 |---|---|---|---|
 | `worktrees` | `Record<string, WorktreeSettings>` | `{}` | Pattern-matched settings by repo URL or glob. |
+| `worktrees[*].worktreeRoot` | `string` | `{{mainWorktree}}.worktrees` | Parent directory for new worktrees. |
+| `worktrees[*].onCreate` | `string \| string[]` | `echo "Created {{path}}"` | Command(s) run after creating a new worktree. |
+| `worktrees[*].onSwitch` | `string \| string[]` | unset | Command(s) run when switching to an existing worktree via `/worktree list` or when re-selecting in `/worktree create`. |
+| `worktrees[*].onBeforeRemove` | `string \| string[]` | unset | Command(s) run before `/worktree remove`. A non-zero exit blocks removal. |
 | `matchingStrategy` | `'fail-on-tie' \| 'first-wins' \| 'last-wins'` | `fail-on-tie` | Tie-break behavior for equally specific patterns. |
 | `onCreateDisplayOutputMaxLines` | `number` (integer, `>= 0`) | `5` | Number of latest stdout/stderr lines shown in live UI updates during `onCreate`. |
 | `onCreateCmdDisplayPending` | `string` | `[ ] {{cmd}}` | Template for pending/running command display lines. |
@@ -173,7 +181,7 @@ Settings live in `~/.pi/agent/pi-worktrees-settings.json`.
 | `onCreateCmdDisplaySuccessColor` | `string` | `success` | Pi theme color name for successful command lines. |
 | `onCreateCmdDisplayErrorColor` | `string` | `error` | Pi theme color name for failed command lines. |
 | `worktrees[*].branchNameGenerator` | `string` | unset | Optional command used only by `/worktree create --generate ...`. Must print exactly one branch name to stdout. Receives `$PI_WORKTREE_PROMPT` env var and supports `{{prompt}}` / `{prompt}` token replacement. |
-| `worktree` (legacy) | `WorktreeSettings` | n/a | Legacy fallback shape; migrated automatically. |
+| `worktree` (legacy) | `WorktreeSettings` | n/a | Legacy fallback shape; migrated automatically to `worktrees["**"]`. |
 
 ### Matching model
 
@@ -236,6 +244,26 @@ Where new worktrees are created.
 
 > Backward compatibility: `parentDir` is still accepted as a deprecated alias for `worktreeRoot`.
 > The extension will migrate existing `parentDir` values to `worktreeRoot` automatically.
+
+### `onSwitch`
+
+Command(s) run when a worktree is re-selected rather than created.
+Triggered by `/worktree list` (selecting an existing worktree) and by
+`/worktree create` when the branch already exists and you confirm switching.
+
+- Accepts a single string or an array of strings
+- Supports all template variables (`{{path}}`, `{{name}}`, `{{branch}}`, `{{project}}`, `{{mainWorktree}}`)
+- Not configured by default
+
+### `onBeforeRemove`
+
+Command(s) run before `/worktree remove` removes the worktree. Useful as a
+confirmation or safety gate (e.g. run tests, sync state).
+
+- Accepts a single string or an array of strings
+- A non-zero exit blocks removal
+- Supports all template variables
+- Not configured by default
 ### Create command naming contract
 
 `/worktree create` is branch-first:
@@ -388,6 +416,13 @@ This extension does not apply a separate ad-hoc deprecation mechanism.
   |                           |
   |                          yes
   |                           v
+  |                 [Run onBeforeRemove?]
+  |                    |non-zero exit
+  |                    v
+  |                 [Blocked] ------------------> [Idle]
+  |                    |
+  |                   pass / not configured
+  |                    v
   |                 [git worktree remove]
   |                    |fail (dirty worktree)
   |                    v
@@ -404,7 +439,12 @@ This extension does not apply a separate ad-hoc deprecation mechanism.
   |                    v
   |                 [Success] -------------------> [Idle]
   |
-  +--> [list | status | cd] ---------------------> [Display info] --> [Idle]
+  +--> [list] --> [Select worktree]
+  |                 |
+  |                 v
+  |           [Run onSwitch?] ------------------> [Print path] --> [Idle]
+  |
+  +--> [status | cd] ----------------------------> [Display info] --> [Idle]
   |
   +--> [prune] --> [dry-run stale refs]
                       |none

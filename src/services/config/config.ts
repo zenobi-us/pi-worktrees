@@ -1,4 +1,6 @@
 import { createConfigService } from '@zenobius/pi-extension-config';
+import { homedir } from 'node:os';
+import path from 'node:path';
 import { Parse } from 'typebox/value';
 
 import { migration as migration_01 } from './migrations/01-flat-single.ts';
@@ -150,14 +152,103 @@ export async function createPiWorktreeConfigService() {
     };
   };
 
+  const getConfigPath = (scope: 'home' | 'project' = 'home'): string => {
+    // Mirrors the file layout used by @zenobius/pi-extension-config.
+    if (scope === 'home') {
+      return path.join(homedir(), '.pi', 'agent', 'pi-worktrees.config.json');
+    }
+
+    return path.join(process.cwd(), '.pi', 'pi-worktrees.config.json');
+  };
+
+  // Direct access to the underlying store's save (the service's own `save`
+  // wrapper takes a full config object and is kept for backwards compatibility).
+  const persist = (scope: 'home' | 'project' = 'home') => store.save(scope);
+
   const service = {
     ...store,
     worktrees,
     current,
     save,
+    persist,
+    getConfigPath,
   };
 
   return service;
+}
+
+type WorktreeSettingsKey = keyof WorktreeSettingsConfig;
+
+type PatternUpdate = {
+  set?: WorktreeSettingsConfig;
+  clear?: WorktreeSettingsKey[];
+};
+
+function applyPatternUpdate(
+  existing: WorktreeSettingsConfig | undefined,
+  update: PatternUpdate
+): WorktreeSettingsConfig {
+  const base: WorktreeSettingsConfig = { ...(existing ?? {}) };
+
+  if (update.clear) {
+    for (const key of update.clear) {
+      delete base[key];
+    }
+  }
+
+  if (update.set) {
+    for (const [key, value] of Object.entries(update.set) as [
+      WorktreeSettingsKey,
+      WorktreeSettingsConfig[WorktreeSettingsKey],
+    ][]) {
+      if (value === undefined) {
+        delete base[key];
+        continue;
+      }
+
+      (base as Record<string, unknown>)[key] = value;
+    }
+  }
+
+  return base;
+}
+
+/**
+ * Merge and persist worktree settings without requiring callers to reason about
+ * the full `PiWorktreeConfig` shape. Accepts either a fallback settings update
+ * (written to the `"**"` pattern) and/or explicit per-pattern overrides.
+ *
+ * Each update can both set keys (`set`) and clear keys (`clear`). Clears are
+ * applied first, so a caller can atomically swap a key's value.
+ *
+ * `scope` defaults to `'home'`; `'project'` is accepted for future UI support
+ * but is not yet surfaced through `/worktree` commands.
+ */
+export async function saveWorktreeSettings(
+  configService: PiWorktreeConfigService,
+  update: {
+    fallback?: PatternUpdate;
+    repo?: Record<string, PatternUpdate>;
+    scope?: 'home' | 'project';
+  }
+): Promise<void> {
+  const current = configService.config.worktrees ?? {};
+  const next: Record<string, WorktreeSettingsConfig> = { ...current };
+
+  if (update.fallback) {
+    next['**'] = applyPatternUpdate(next['**'], update.fallback);
+  }
+
+  if (update.repo) {
+    for (const [pattern, patternUpdate] of Object.entries(update.repo)) {
+      next[pattern] = applyPatternUpdate(next[pattern], patternUpdate);
+    }
+  }
+
+  const scope = update.scope ?? 'home';
+  await configService.set('worktrees', next, scope);
+  await configService.persist(scope);
+  await configService.reload();
 }
 
 export const DefaultWorktreeSettings: WorktreeSettingsConfig = {

@@ -1,6 +1,15 @@
 import type { ExtensionCommandContext } from '@mariozechner/pi-coding-agent';
 import type { CommandDeps } from '../types.ts';
+import { saveWorktreeSettings } from '../services/config/config.ts';
 import { WorktreeSettingsConfig, getConfiguredWorktreeRoot } from '../services/config/schema.ts';
+
+function formatHookValue(value: WorktreeSettingsConfig['onCreate']): string {
+  if (!value) {
+    return '';
+  }
+
+  return Array.isArray(value) ? value.join(' && ') : value;
+}
 
 export async function cmdInit(
   _args: string,
@@ -17,15 +26,21 @@ export async function cmdInit(
 
   ctx.ui.notify('Worktree Extension Setup\n━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
 
-  if (currentWorktreeRoot || currentSettings.onCreate) {
-    const current = [
-      'Current settings:',
-      currentWorktreeRoot ? `  worktreeRoot: ${currentWorktreeRoot}` : null,
-      currentSettings.onCreate ? `  onCreate: ${currentSettings.onCreate}` : null,
-    ]
-      .filter(Boolean)
-      .join('\n');
-    ctx.ui.notify(current, 'info');
+  const currentLines = [
+    'Current settings:',
+    currentWorktreeRoot ? `  worktreeRoot: ${currentWorktreeRoot}` : null,
+    currentSettings.onCreate ? `  onCreate: ${formatHookValue(currentSettings.onCreate)}` : null,
+    currentSettings.onSwitch ? `  onSwitch: ${formatHookValue(currentSettings.onSwitch)}` : null,
+    currentSettings.onBeforeRemove
+      ? `  onBeforeRemove: ${formatHookValue(currentSettings.onBeforeRemove)}`
+      : null,
+    currentSettings.branchNameGenerator
+      ? `  branchNameGenerator: ${currentSettings.branchNameGenerator}`
+      : null,
+  ].filter(Boolean) as string[];
+
+  if (currentLines.length > 1) {
+    ctx.ui.notify(currentLines.join('\n'), 'info');
   }
 
   const PARENT_DIR_DEFAULT = 'Default ({{mainWorktree}}.worktrees)';
@@ -72,12 +87,10 @@ export async function cmdInit(
     worktreeRoot = currentWorktreeRoot;
   }
 
-  const onCreateDefault = Array.isArray(currentSettings.onCreate)
-    ? currentSettings.onCreate.join(' && ')
-    : (currentSettings.onCreate ?? 'mise setup');
+  const onCreateDefault = formatHookValue(currentSettings.onCreate) || 'mise setup';
 
   const onCreate = await ctx.ui.input(
-    'Enter command to run after creating worktree (or leave empty):\nSupports: {{path}}, {{name}}, {{branch}}, {{project}}, {{mainWorktree}}',
+    'Enter command to run after creating a new worktree (or leave empty):\nSupports: {{path}}, {{name}}, {{branch}}, {{project}}, {{mainWorktree}}',
     onCreateDefault
   );
 
@@ -86,13 +99,58 @@ export async function cmdInit(
     return;
   }
 
-  const newSettings: WorktreeSettingsConfig = {};
-  if (worktreeRoot) {
-    newSettings.worktreeRoot = worktreeRoot;
+  const onSwitchDefault = formatHookValue(currentSettings.onSwitch);
+
+  const onSwitch = await ctx.ui.input(
+    'Enter command to run when switching to an existing worktree (or leave empty):\nSupports: {{path}}, {{name}}, {{branch}}, {{project}}, {{mainWorktree}}',
+    onSwitchDefault
+  );
+
+  if (onSwitch === undefined) {
+    ctx.ui.notify('Setup cancelled', 'info');
+    return;
   }
 
-  if (onCreate && onCreate.trim()) {
-    newSettings.onCreate = onCreate.trim();
+  const onBeforeRemoveDefault = formatHookValue(currentSettings.onBeforeRemove);
+
+  const onBeforeRemove = await ctx.ui.input(
+    'Enter command to run before removing a worktree (non-zero exit blocks removal, or leave empty):\nSupports: {{path}}, {{name}}, {{branch}}, {{project}}, {{mainWorktree}}',
+    onBeforeRemoveDefault
+  );
+
+  if (onBeforeRemove === undefined) {
+    ctx.ui.notify('Setup cancelled', 'info');
+    return;
+  }
+
+  const newSettings: WorktreeSettingsConfig = {};
+  const clearKeys: (keyof WorktreeSettingsConfig)[] = [];
+
+  if (worktreeRoot) {
+    newSettings.worktreeRoot = worktreeRoot;
+  } else {
+    clearKeys.push('worktreeRoot', 'parentDir');
+  }
+
+  const trimmedOnCreate = onCreate.trim();
+  if (trimmedOnCreate) {
+    newSettings.onCreate = trimmedOnCreate;
+  } else {
+    clearKeys.push('onCreate');
+  }
+
+  const trimmedOnSwitch = onSwitch.trim();
+  if (trimmedOnSwitch) {
+    newSettings.onSwitch = trimmedOnSwitch;
+  } else {
+    clearKeys.push('onSwitch');
+  }
+
+  const trimmedOnBeforeRemove = onBeforeRemove.trim();
+  if (trimmedOnBeforeRemove) {
+    newSettings.onBeforeRemove = trimmedOnBeforeRemove;
+  } else {
+    clearKeys.push('onBeforeRemove');
   }
 
   const preview = [
@@ -102,6 +160,12 @@ export async function cmdInit(
       ? `  worktreeRoot: "${newSettings.worktreeRoot}"`
       : '  worktreeRoot: (default)',
     newSettings.onCreate ? `  onCreate: "${newSettings.onCreate}"` : '  onCreate: (none)',
+    newSettings.onSwitch ? `  onSwitch: "${newSettings.onSwitch}"` : '  onSwitch: (none)',
+    newSettings.onBeforeRemove
+      ? `  onBeforeRemove: "${newSettings.onBeforeRemove}"`
+      : '  onBeforeRemove: (none)',
+    '',
+    `Target file: ${deps.configService.getConfigPath('home')}`,
     '',
   ].join('\n');
 
@@ -113,13 +177,10 @@ export async function cmdInit(
   }
 
   try {
-    // TODO: See todo in ./cmds/cmdSettings.ts about saving paradigm
-
-    // await saveWorktreeSettings(deps.configService, { fallback: newSettings }); /
-    ctx.ui.notify(`✓ Settings saved`, 'info');
-
-    const finalConfig = JSON.stringify({ worktree: newSettings }, null, 2);
-    ctx.ui.notify(`Configuration:\n${finalConfig}`, 'info');
+    await saveWorktreeSettings(deps.configService, {
+      fallback: { set: newSettings, clear: clearKeys },
+    });
+    ctx.ui.notify(`✓ Settings saved to ${deps.configService.getConfigPath('home')}`, 'info');
   } catch (err) {
     ctx.ui.notify(`Failed to save settings: ${(err as Error).message}`, 'error');
   }
