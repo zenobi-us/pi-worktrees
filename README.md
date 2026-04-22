@@ -252,8 +252,26 @@ Triggered by `/worktree list` (selecting an existing worktree) and by
 `/worktree create` when the branch already exists and you confirm switching.
 
 - Accepts a single string or an array of strings
+- Runs with the selected worktree's path as the child process cwd
 - Supports all template variables (`{{path}}`, `{{name}}`, `{{branch}}`, `{{project}}`, `{{mainWorktree}}`)
 - Not configured by default
+
+> **What "switch" does today.** In the current version of this extension,
+> `onSwitch` does **not** change the running pi session's working directory.
+> It is a hook for opening pi (or any other workflow) in the selected
+> worktree — typically a new terminal tab, tmux/zellij pane, or IDE window
+> rooted at `{{path}}`. Without an `onSwitch`, `/worktree list` only prints
+> the path and next-step suggestions. A future release of this extension
+> plans to switch the running session in place on sufficiently recent pi
+> builds; until that lands, the multiplexer / relaunch workflow below is the
+> recommended setup.
+>
+> Typical `onSwitch` values:
+> ```
+> zellij action new-tab --cwd {{path}} -- pi
+> tmux new-window -c {{path}} pi
+> osascript -e 'tell app "Terminal" to do script "cd {{path}} && pi"'
+> ```
 
 ### `onBeforeRemove`
 
@@ -494,6 +512,25 @@ Use `/worktree remove <name>`, then confirm the force remove prompt.
 
 ### `cd` does not switch shell directory
 `/worktree cd` prints the path; it does not directly mutate your shell state.
+
+### `/worktree list` doesn’t change my pi session’s directory
+The current version of this extension does not move the running pi session
+when you pick a worktree. It runs your `onSwitch` hook (if any) with the
+worktree’s path as the child process’s cwd, and prints the path. To actually
+work in a worktree you have two options today:
+
+- **Start a fresh pi there.** Exit the current session and run
+  `cd /path/to/worktree && pi`. Each cwd keeps its own session history under
+  `~/.pi/agent/sessions/<encoded-cwd>/`.
+- **Configure an `onSwitch` hook that spawns pi in a new tab/window.** See the
+  [`onSwitch`](#onswitch) section above for example commands. Because
+  `onSwitch` children already run rooted at `{{path}}`, a plain `pi` inside
+  the hook resolves correctly.
+
+Note: recent pi builds (≥ 0.65.0) expose runtime APIs that make true
+in-place cwd switching possible, and a future release of this extension
+plans to use them so `/worktree list` can redirect the current session
+directly.
 
 ---
 

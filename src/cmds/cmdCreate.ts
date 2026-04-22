@@ -69,8 +69,8 @@ export async function cmdCreate(
     }
 
     const confirmMessage = current.onSwitch
-      ? `Path: ${existingWorktree.path}\nBranch: ${existingWorktree.branch}\n\nSwitch to this worktree and run onSwitch?`
-      : `Path: ${existingWorktree.path}\nBranch: ${existingWorktree.branch}\n\nSwitch to this worktree?`;
+      ? `Path: ${existingWorktree.path}\nBranch: ${existingWorktree.branch}\n\nRun onSwitch for this worktree?`
+      : `Path: ${existingWorktree.path}\nBranch: ${existingWorktree.branch}\n\nShow this worktree's path? (This version of the extension does not redirect the running pi session; configure an onSwitch hook to open pi in this worktree automatically.)`;
     const shouldSwitch = await ctx.ui.confirm('Worktree already exists', confirmMessage);
 
     if (!shouldSwitch) {
@@ -116,6 +116,23 @@ export async function cmdCreate(
       return;
     }
     ctx.ui.notify(`Worktree path: ${existingWorktree.path}`, 'info');
+    if (current.onSwitch) {
+      ctx.ui.notify(
+        `onSwitch finished. Note: this pi session has not been moved to ${existingWorktree.path} — in this version of the extension, onSwitch is expected to have opened pi there in a separate tab/window/pane.`,
+        'info'
+      );
+    } else {
+      ctx.ui.notify(
+        [
+          'Note: in this version of the extension, /worktree create does not',
+          'redirect the running pi session to the selected worktree.',
+          'To work in this worktree, either:',
+          `  • exit and run: cd ${existingWorktree.path} && pi`,
+          '  • configure /worktree settings onSwitch "<command that spawns pi in a new tab/window>"',
+        ].join('\n'),
+        'info'
+      );
+    }
     return;
   }
 

@@ -49,7 +49,7 @@ export const cmdList: CmdHandler = async (_args, ctx, deps) => {
 
   const options = worktrees.map(formatWorktreeOption);
   const byOption = new Map(options.map((option, index) => [option, worktrees[index]]));
-  const selected = await ctx.ui.select('Select worktree to switch to', options);
+  const selected = await ctx.ui.select('Select a worktree', options);
 
   if (selected === undefined) {
     ctx.ui.notify('Cancelled', 'info');
@@ -65,7 +65,26 @@ export const cmdList: CmdHandler = async (_args, ctx, deps) => {
   const current = deps.configService.current({ cwd: target.path });
 
   if (!current.onSwitch) {
-    ctx.ui.notify(`No onSwitch configured for: ${target.path}`, 'info');
+    ctx.ui.notify(
+      [
+        `Worktree path: ${target.path}`,
+        `Branch:        ${target.branch}`,
+        '',
+        'Note: in this version of the extension, /worktree list does not',
+        'redirect the running pi session to the selected worktree. It runs',
+        'your onSwitch hook (if configured) and prints the path.',
+        '',
+        'To work in this worktree, either:',
+        `  • exit and run: cd ${target.path} && pi`,
+        '  • configure an onSwitch hook that spawns pi there in a new',
+        '    terminal/tab, e.g.:',
+        "      /worktree settings onSwitch 'zellij action new-tab --cwd {{path}} -- pi'",
+        `      (or: tmux new-window -c {{path}} pi)`,
+        '',
+        'See /worktree init for an interactive setup, or the README for details.',
+      ].join('\n'),
+      'info'
+    );
     return;
   }
 
@@ -115,6 +134,10 @@ export const cmdList: CmdHandler = async (_args, ctx, deps) => {
 
     stopBusy();
     deps.statusService.positive(ctx, `onSwitch complete: ${target.branch}`);
+    ctx.ui.notify(
+      `onSwitch finished. Note: this pi session has not been moved to ${target.path} — in this version of the extension, onSwitch is expected to have opened pi there in a separate tab/window/pane.`,
+      'info'
+    );
   } catch (err) {
     stopBusy();
     deps.statusService.critical(ctx, `onSwitch failed`);

@@ -73,4 +73,49 @@ describe('cmdList onSwitch integration', () => {
     expect(notifiedText).toContain('onSwitch steps:');
     expect(notifiedText).toContain('echo switched');
   });
+
+  it('prints path + guidance when no onSwitch is configured', async () => {
+    select.mockResolvedValue(`feature/feature-a\n  ${worktreePath}`);
+
+    const deps: CommandDeps = {
+      settings: {},
+      configService: {
+        current: vi.fn(() => ({
+          project: 'repo',
+          mainWorktree: '/main/repo',
+          logfile: '/tmp/pi-worktree-{sessionId}-{name}.log',
+          onCreateDisplayOutputMaxLines: 5,
+          onCreateCmdDisplayPending: '[ ] {{cmd}}',
+          onCreateCmdDisplaySuccess: '[x] {{cmd}}',
+          onCreateCmdDisplayError: '[ ] {{cmd}} [ERROR]',
+          onCreateCmdDisplayPendingColor: 'dim',
+          onCreateCmdDisplaySuccessColor: 'success',
+          onCreateCmdDisplayErrorColor: 'error',
+        })),
+      } as unknown as CommandDeps['configService'],
+      statusService: {
+        busy: vi.fn(() => vi.fn()),
+        positive: vi.fn(),
+        critical: vi.fn(),
+      } as unknown as CommandDeps['statusService'],
+    };
+
+    const ctx = {
+      cwd: '/main/repo',
+      hasUI: true,
+      ui: { notify, select },
+    };
+
+    await cmdList('', ctx as never, deps);
+
+    const notifiedText = notify.mock.calls.map(([msg]) => String(msg)).join('\n');
+    expect(notifiedText).toContain(`Worktree path: ${worktreePath}`);
+    expect(notifiedText).toContain('Branch:');
+    // Must NOT include the old terse message.
+    expect(notifiedText).not.toMatch(/^No onSwitch configured for: /m);
+    // Must describe the current behavior and offer actionable next steps.
+    expect(notifiedText).toMatch(/does not\s+redirect the running pi session/);
+    expect(notifiedText).toContain(`cd ${worktreePath} && pi`);
+    expect(notifiedText).toContain('/worktree settings onSwitch');
+  });
 });
