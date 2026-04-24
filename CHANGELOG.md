@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/zenobi-us/pi-worktrees/compare/v0.5.0...v0.5.1) (2026-04-24)
+
+
+### Bug Fixes
+
+* persist /worktree settings updates ([#17](https://github.com/zenobi-us/pi-worktrees/issues/17)) ([4360a4c](https://github.com/zenobi-us/pi-worktrees/commit/4360a4c241db72391212f7bc3037e471705e8d6f)), closes [#14](https://github.com/zenobi-us/pi-worktrees/issues/14)
+
 ## [0.5.0](https://github.com/zenobi-us/pi-worktrees/compare/v0.4.0...v0.5.0) (2026-04-01)
 
 
