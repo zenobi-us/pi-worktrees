@@ -129,7 +129,7 @@ This creates a new Zellij tab with Neovim and Pi running in the new worktree pat
 
 ## Configuration
 
-Settings live in `~/.pi/agent/pi-worktrees-settings.json`.
+Settings live in `~/.pi/agent/pi-worktrees.config.json`.
 
 ```json
 {
