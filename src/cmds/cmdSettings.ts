@@ -77,8 +77,10 @@ export async function cmdSettings(
     return;
   }
 
-  const newSettings = { ...currentSettings };
-
+  const resolvedCurrent = deps.configService.current(ctx) as { matchedPattern?: string };
+  const matchedPattern = resolvedCurrent.matchedPattern ?? '**';
+  const configuredWorktrees = deps.configService.config.worktrees ?? {};
+  const newSettings = { ...(configuredWorktrees[matchedPattern] ?? {}) };
   if (value === '' || value === '""' || value === 'null' || value === 'clear') {
     delete newSettings[resolvedKey];
     delete newSettings.parentDir;
@@ -91,8 +93,13 @@ export async function cmdSettings(
     ctx.ui.notify(`✓ Set ${resolvedKey} = "${value}"`, 'info');
   }
 
+  const nextWorktrees = { ...configuredWorktrees, [matchedPattern]: newSettings };
+  if (matchedPattern !== '**' && Object.keys(newSettings).length === 0) {
+    delete nextWorktrees[matchedPattern];
+  }
+
   try {
-    // await deps.configService.save(newSettings);
+    await deps.configService.save({ worktrees: nextWorktrees });
   } catch (err) {
     ctx.ui.notify(`Failed to save settings: ${(err as Error).message}`, 'error');
   }
