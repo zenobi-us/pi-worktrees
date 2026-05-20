@@ -1,4 +1,4 @@
-import type { ExtensionCommandContext } from '@mariozechner/pi-coding-agent';
+import type { ExtensionCommandContext } from '@earendil-works/pi-coding-agent';
 import type { PiWorktreeConfigService } from './services/config/config.ts';
 import { WorktreeSettingsConfig } from './services/config/schema.ts';
 import { StatusIndicator } from './ui/status.ts';

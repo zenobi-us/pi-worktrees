@@ -1,5 +1,5 @@
-import type { Theme } from '@mariozechner/pi-coding-agent';
-import { Key, matchesKey, wrapTextWithAnsi } from '@mariozechner/pi-tui';
+import type { Theme } from '@earendil-works/pi-coding-agent';
+import { Key, matchesKey, wrapTextWithAnsi } from '@earendil-works/pi-tui';
 
 export interface TemplateToken {
   token: string;

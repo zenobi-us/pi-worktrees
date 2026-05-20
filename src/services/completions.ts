@@ -1,5 +1,5 @@
-import type { RegisteredCommand } from '@mariozechner/pi-coding-agent';
-import type { AutocompleteItem } from '@mariozechner/pi-tui';
+import type { RegisteredCommand } from '@earendil-works/pi-coding-agent';
+import type { AutocompleteItem } from '@earendil-works/pi-tui';
 
 type CommandMap = Record<string, unknown>;
 

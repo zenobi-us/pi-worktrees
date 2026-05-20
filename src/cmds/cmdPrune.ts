@@ -1,4 +1,4 @@
-import type { ExtensionCommandContext } from '@mariozechner/pi-coding-agent';
+import type { ExtensionCommandContext } from '@earendil-works/pi-coding-agent';
 import { git, isGitRepo } from '../services/git.ts';
 import type { CommandDeps } from '../types.ts';
 

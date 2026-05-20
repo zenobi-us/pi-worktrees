@@ -1,4 +1,4 @@
-import type { ExtensionCommandContext } from '@mariozechner/pi-coding-agent';
+import type { ExtensionCommandContext } from '@earendil-works/pi-coding-agent';
 import type { CommandDeps } from '../types.ts';
 import { getConfiguredWorktreeRoot } from '../services/config/schema.ts';
 

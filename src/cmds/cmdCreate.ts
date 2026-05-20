@@ -1,4 +1,4 @@
-import type { ExtensionCommandContext } from '@mariozechner/pi-coding-agent';
+import type { ExtensionCommandContext } from '@earendil-works/pi-coding-agent';
 import { basename, join } from 'path';
 import { ensureExcluded, git, isGitRepo, listWorktrees } from '../services/git.ts';
 import { resolveLogfilePath, runHook, runOnCreateHook, sanitizePathPart } from './shared.ts';

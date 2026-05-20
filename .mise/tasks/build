@@ -7,8 +7,8 @@
 rm -rf dist
 
 bun build ./src/index.ts --outdir dist --target bun --packages external \
-	--external '@mariozechner/pi-coding-agent' \
-	--external '@mariozechner/pi-tui' \
-	--external '@mariozechner/pi-ai'
+	--external '@earendil-works/pi-coding-agent' \
+	--external '@earendil-works/pi-tui' \
+	--external '@earendil-works/pi-ai'
 
 tsc --project tsconfig.build.json

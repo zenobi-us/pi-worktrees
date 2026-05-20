@@ -1,4 +1,4 @@
-import { ExtensionCommandContext } from '@mariozechner/pi-coding-agent';
+import type { ExtensionCommandContext } from '@earendil-works/pi-coding-agent';
 
 type StatusOptions = {
   busy?: keyof typeof StatusIndicator.busyStyles;
