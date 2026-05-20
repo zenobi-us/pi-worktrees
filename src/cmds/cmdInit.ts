@@ -112,13 +112,14 @@ export async function cmdInit(
     return;
   }
 
-  try {
-    // TODO: See todo in ./cmds/cmdSettings.ts about saving paradigm
+  const configuredWorktrees = deps.configService.config.worktrees ?? {};
+  const nextWorktrees = { ...configuredWorktrees, '**': newSettings };
 
-    // await saveWorktreeSettings(deps.configService, { fallback: newSettings }); /
+  try {
+    await deps.configService.save({ worktrees: nextWorktrees });
     ctx.ui.notify(`✓ Settings saved`, 'info');
 
-    const finalConfig = JSON.stringify({ worktree: newSettings }, null, 2);
+    const finalConfig = JSON.stringify({ worktrees: nextWorktrees }, null, 2);
     ctx.ui.notify(`Configuration:\n${finalConfig}`, 'info');
   } catch (err) {
     ctx.ui.notify(`Failed to save settings: ${(err as Error).message}`, 'error');
