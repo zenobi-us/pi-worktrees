@@ -110,9 +110,10 @@ export async function createPiWorktreeConfigService() {
     await store.save('home');
   };
 
-  const worktrees = normalizeConfiguredWorktrees(store.config.worktrees);
+  const getWorktrees = () => normalizeConfiguredWorktrees(store.config.worktrees);
 
   const current = (ctx: { cwd: string }) => {
+    const worktrees = getWorktrees();
     const repo = getRemoteUrl(ctx.cwd);
     const resolution = matchRepo(repo, worktrees, store.config.matchingStrategy);
 
@@ -152,7 +153,9 @@ export async function createPiWorktreeConfigService() {
 
   const service = {
     ...store,
-    worktrees,
+    get worktrees() {
+      return getWorktrees();
+    },
     current,
     save,
   };

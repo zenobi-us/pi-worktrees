@@ -140,6 +140,25 @@ describe('config service integration', () => {
     expect(toList(settingsB?.onCreate)).toEqual(['echo one', 'echo two']);
   });
 
+  it('recomputes worktrees from current store config on access', async () => {
+    store = createMockStore({
+      worktrees: {
+        'github.com/org/repo': { onCreate: 'echo one' },
+      },
+    });
+
+    createConfigServiceMock.mockImplementation(async () => store);
+
+    const service = await createPiWorktreeConfigService();
+    expect(service.worktrees.get('github.com/org/repo')?.onCreate).toBe('echo one');
+
+    store.config.worktrees = {
+      'github.com/org/repo': { onCreate: 'echo updated' },
+    };
+
+    expect(service.worktrees.get('github.com/org/repo')?.onCreate).toBe('echo updated');
+  });
+
   it('exposes onCreate output display line limit with default fallback', async () => {
     store = createMockStore({
       worktrees: {
