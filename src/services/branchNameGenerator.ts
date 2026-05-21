@@ -1,4 +1,4 @@
-import { spawn } from 'child_process';
+import { exec, spawn } from 'child_process';
 
 export const BRANCH_NAME_GENERATOR_TIMEOUT_MS = 5000;
 
@@ -73,57 +73,36 @@ export async function generateBranchName(
     | { kind: 'spawn-error'; error: string }
     | { kind: 'timeout' }
   >((resolve) => {
-    const child = spawn(command, {
-      cwd: params.cwd,
-      shell: true,
-      stdio: ['ignore', 'pipe', 'pipe'],
-      env: {
-        ...process.env,
-        PI_WORKTREE_PROMPT: params.input,
+    exec(
+      command,
+      {
+        cwd: params.cwd,
+        env: {
+          ...process.env,
+          PI_WORKTREE_PROMPT: params.input,
+        },
+        timeout: timeoutMs,
+        killSignal: 'SIGKILL',
       },
-    });
+      (error, stdout, stderr) => {
+        if (!error) {
+          resolve({ kind: 'success', stdout, stderr, code: 0 });
+          return;
+        }
 
-    let stdout = '';
-    let stderr = '';
-    let done = false;
+        if (error.killed) {
+          resolve({ kind: 'timeout' });
+          return;
+        }
 
-    const timer = globalThis.setTimeout(() => {
-      if (done) {
-        return;
+        if (typeof error.code === 'number') {
+          resolve({ kind: 'success', stdout, stderr, code: error.code });
+          return;
+        }
+
+        resolve({ kind: 'spawn-error', error: error.message });
       }
-
-      done = true;
-      child.kill('SIGKILL');
-      resolve({ kind: 'timeout' });
-    }, timeoutMs);
-
-    child.stdout?.on('data', (chunk) => {
-      stdout += chunk.toString();
-    });
-
-    child.stderr?.on('data', (chunk) => {
-      stderr += chunk.toString();
-    });
-
-    child.on('error', (error) => {
-      if (done) {
-        return;
-      }
-
-      done = true;
-      globalThis.clearTimeout(timer);
-      resolve({ kind: 'spawn-error', error: error.message });
-    });
-
-    child.on('close', (code) => {
-      if (done) {
-        return;
-      }
-
-      done = true;
-      globalThis.clearTimeout(timer);
-      resolve({ kind: 'success', stdout, stderr, code: code ?? 1 });
-    });
+    );
   });
 
   if (result.kind === 'timeout') {
