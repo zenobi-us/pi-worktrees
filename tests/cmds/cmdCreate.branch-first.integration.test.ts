@@ -155,6 +155,30 @@ describe('cmdCreate branch-first integration', () => {
     );
   });
 
+  it('checks out an existing branch when no worktree uses it', async () => {
+    vi.spyOn(gitService, 'git').mockImplementation((args: string[]) => {
+      if (args[0] === 'rev-parse') {
+        return 'abc123';
+      }
+
+      return '';
+    });
+
+    const deps = createDeps();
+    const ctx = { cwd: '/main/repo', hasUI: true, ui: { notify, confirm } };
+
+    await cmdCreate('frontend', ctx as never, deps);
+
+    expect(gitService.git).toHaveBeenCalledWith(
+      ['worktree', 'add', '/tmp/repo.worktrees/frontend', 'frontend'],
+      '/main/repo'
+    );
+    expect(notify).not.toHaveBeenCalledWith(
+      "Branch 'frontend' already exists. Use a different name.",
+      'error'
+    );
+  });
+
   it('rejects invalid explicit name values', async () => {
     const deps = createDeps();
     const ctx = { cwd: '/main/repo', hasUI: true, ui: { notify, confirm } };

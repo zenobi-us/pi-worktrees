@@ -126,10 +126,10 @@ export async function cmdCreate(
     return;
   }
 
+  let branchExists = false;
   try {
     git(['rev-parse', '--verify', branchName], ctx.cwd);
-    ctx.ui.notify(`Branch '${branchName}' already exists. Use a different name.`, 'error');
-    return;
+    branchExists = true;
   } catch {
     // branch doesn't exist
   }
@@ -137,7 +137,10 @@ export async function cmdCreate(
   ensureExcluded(ctx.cwd, current.parentDir);
   const stopBusy = deps.statusService.busy(ctx, `Creating worktree: ${worktreeName}...`);
   try {
-    git(['worktree', 'add', '-b', branchName, worktreePath], current.mainWorktree);
+    const addArgs = branchExists
+      ? ['worktree', 'add', worktreePath, branchName]
+      : ['worktree', 'add', '-b', branchName, worktreePath];
+    git(addArgs, current.mainWorktree);
     stopBusy();
     deps.statusService.positive(ctx, `Created: ${worktreeName}`);
   } catch (err) {
