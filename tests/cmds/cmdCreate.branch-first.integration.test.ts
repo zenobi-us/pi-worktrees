@@ -64,6 +64,31 @@ describe('cmdCreate branch-first integration', () => {
 
     await cmdCreate('feature/login', ctx as never, deps);
 
+    expect(gitService.git).toHaveBeenCalledWith(['worktree', 'prune'], '/main/repo');
+    expect(gitService.git).toHaveBeenCalledWith(
+      ['worktree', 'add', '-b', 'feature/login', '/tmp/repo.worktrees/feature-login'],
+      '/main/repo'
+    );
+  });
+
+  it('continues create flow when stale worktree prune fails', async () => {
+    vi.spyOn(gitService, 'git').mockImplementation((args: string[]) => {
+      if (args[0] === 'worktree' && args[1] === 'prune') {
+        throw new Error('prune failed');
+      }
+      if (args[0] === 'rev-parse') {
+        throw new Error('branch does not exist');
+      }
+
+      return '';
+    });
+
+    const deps = createDeps();
+    const ctx = { cwd: '/main/repo', hasUI: true, ui: { notify, confirm } };
+
+    await cmdCreate('feature/login', ctx as never, deps);
+
+    expect(gitService.git).toHaveBeenCalledWith(['worktree', 'prune'], '/main/repo');
     expect(gitService.git).toHaveBeenCalledWith(
       ['worktree', 'add', '-b', 'feature/login', '/tmp/repo.worktrees/feature-login'],
       '/main/repo'
@@ -126,6 +151,30 @@ describe('cmdCreate branch-first integration', () => {
 
     expect(notify).toHaveBeenCalledWith(
       'Worktree already exists at: /tmp/repo.worktrees/ui-login',
+      'error'
+    );
+  });
+
+  it('checks out an existing branch when no worktree uses it', async () => {
+    vi.spyOn(gitService, 'git').mockImplementation((args: string[]) => {
+      if (args[0] === 'rev-parse') {
+        return 'abc123';
+      }
+
+      return '';
+    });
+
+    const deps = createDeps();
+    const ctx = { cwd: '/main/repo', hasUI: true, ui: { notify, confirm } };
+
+    await cmdCreate('frontend', ctx as never, deps);
+
+    expect(gitService.git).toHaveBeenCalledWith(
+      ['worktree', 'add', '/tmp/repo.worktrees/frontend', 'frontend'],
+      '/main/repo'
+    );
+    expect(notify).not.toHaveBeenCalledWith(
+      "Branch 'frontend' already exists. Use a different name.",
       'error'
     );
   });
