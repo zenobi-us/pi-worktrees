@@ -25,6 +25,13 @@ export async function cmdCreate(
     return;
   }
 
+  try {
+    git(['worktree', 'prune'], ctx.cwd);
+  } catch {
+    // Best-effort cleanup. If pruning fails, continue so the create flow can
+    // report the underlying collision or git worktree add error.
+  }
+
   const current = deps.configService.current(ctx);
 
   let branchName = parsed.generate ? '' : parsed.branch;

@@ -64,6 +64,31 @@ describe('cmdCreate branch-first integration', () => {
 
     await cmdCreate('feature/login', ctx as never, deps);
 
+    expect(gitService.git).toHaveBeenCalledWith(['worktree', 'prune'], '/main/repo');
+    expect(gitService.git).toHaveBeenCalledWith(
+      ['worktree', 'add', '-b', 'feature/login', '/tmp/repo.worktrees/feature-login'],
+      '/main/repo'
+    );
+  });
+
+  it('continues create flow when stale worktree prune fails', async () => {
+    vi.spyOn(gitService, 'git').mockImplementation((args: string[]) => {
+      if (args[0] === 'worktree' && args[1] === 'prune') {
+        throw new Error('prune failed');
+      }
+      if (args[0] === 'rev-parse') {
+        throw new Error('branch does not exist');
+      }
+
+      return '';
+    });
+
+    const deps = createDeps();
+    const ctx = { cwd: '/main/repo', hasUI: true, ui: { notify, confirm } };
+
+    await cmdCreate('feature/login', ctx as never, deps);
+
+    expect(gitService.git).toHaveBeenCalledWith(['worktree', 'prune'], '/main/repo');
     expect(gitService.git).toHaveBeenCalledWith(
       ['worktree', 'add', '-b', 'feature/login', '/tmp/repo.worktrees/feature-login'],
       '/main/repo'
